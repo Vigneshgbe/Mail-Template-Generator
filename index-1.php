@@ -362,7 +362,7 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
         }
 
         .form-control {
-            width: 100%;
+            width: 98%;
             padding: 0.75rem 1rem;
             border: 2px solid #e2e8f0;
             border-radius: 0.5rem;
@@ -1284,9 +1284,9 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 </div>
 
                 <div class="flex justify-between space-x-4 mt-6">
-                    <button type="button" @click="debug.showDebug = !debug.showDebug" class="btn btn-secondary">
+                    <!-- <button type="button" @click="debug.showDebug = !debug.showDebug" class="btn btn-secondary">
                         <i class="fas fa-bug mr-2"></i>Toggle Debug
-                    </button>
+                    </button> -->
                     
                     <div>
                         <button type="reset" class="btn btn-secondary">
@@ -1337,8 +1337,8 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
                 <?php if (isset($preview_html) && !empty($preview_html)): ?>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="copyToClipboard()" class="btn btn-success">
+                   <div class="flex flex-wrap gap-2">
+                       <!--   <button onclick="copyToClipboard()" class="btn btn-success">
                             <i class="fas fa-copy mr-2"></i>Copy with Formatting
                         </button>
                         <button onclick="copyForOutlook()" class="btn btn-primary">
@@ -1355,7 +1355,7 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                         </button>
                         <button onclick="showManualCopyInstructions()" class="btn btn-secondary" title="What to do if copying doesn't work">
                             <i class="fas fa-question-circle"></i>
-                        </button>
+                        </button> -->
                     </div>
                 <?php endif; ?>
             </div>

@@ -40,10 +40,24 @@ function getBase64Image($imagePath) {
 // Variable to store status messages and HTML preview
 $message = '';
 $preview_html = '';
+$current_step = 1;
 
 // Process the form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     error_log("Form submitted. Processing file uploads...");
+    
+    // Determine current step based on form data
+    if (isset($_POST['body_content']) && !empty($_POST['body_content'])) {
+        $current_step = 2;
+    }
+    
+    if (isset($_POST['layout_type']) && $_POST['layout_type'] !== '0') {
+        $current_step = 3;
+    }
+    
+    if (isset($_POST['regards_name']) && !empty($_POST['regards_name'])) {
+        $current_step = 4;
+    }
     
     // Process header image
     $header_image = '';
@@ -187,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($body_content)) {
         error_log("Generating email template...");
         
-        // Use the included function to generate the email template
+        // Options for the email template
         $options = [
             'header_image' => $header_image_data,
             'body_content' => $body_content,
@@ -205,16 +219,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $options['employee_details'] = $employee_details;
         }
         
-        // Call the generateEmailTemplate function
-        // This function should be defined elsewhere in your code
-        if (function_exists('generateEmailTemplate')) {
-            $preview_html = generateEmailTemplate($options);
-            $message = "Template generated successfully!";
-            error_log("Email template generated successfully");
-        } else {
-            error_log("generateEmailTemplate function not found");
-            $message = "Error: Template generation function not available.";
-        }
+        // Generate the template
+        $preview_html = generateEmailTemplate($options);
+        $message = "Template generated successfully!";
+        error_log("Email template generated successfully");
+        $current_step = 4; // Set to completion step
     } else {
         error_log("No body content provided");
         $message = "Please provide email content.";
@@ -353,7 +362,7 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
         }
 
         .form-control {
-            width: 100%;
+            width: 98%;
             padding: 0.75rem 1rem;
             border: 2px solid #e2e8f0;
             border-radius: 0.5rem;
@@ -730,66 +739,169 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             }
         }
         
-        /* NEW STYLES FOR IMPROVED LAYOUT SECTION */
-        .layout-grid {
+        /* Layout option styles - updated for a more professional look */
+        .layout-options {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
         }
-        
+
         .layout-option {
             position: relative;
             transition: all 0.3s ease;
-            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
             overflow: hidden;
-            height: 100%;
         }
-        
+
+        .layout-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
         .layout-option input[type="radio"] {
             position: absolute;
             opacity: 0;
-            width: 0;
-            height: 0;
         }
-        
+
+        .layout-option input[type="radio"]:checked + .layout-content {
+            border-color: var(--primary-color);
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+
+        .layout-option input[type="radio"]:checked + .layout-content .option-check {
+            opacity: 1;
+            transform: scale(1);
+        }
+
         .layout-content {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
             height: 100%;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s ease;
         }
-        
-        .layout-option input[type="radio"]:checked + .layout-content {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
-            background-color: rgba(79, 70, 229, 0.05);
-        }
-        
-        .layout-preview {
+
+        .layout-visual {
             background-color: #f8fafc;
-            height: 130px;
+            width: 100%;
+            height: 120px;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 12px;
+            overflow: hidden;
         }
-        
-        .layout-label {
-            padding: 12px;
-            text-align: center;
+
+        .option-check {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s ease;
+        }
+
+        .layout-title {
             font-weight: 500;
-            border-top: 1px solid #e2e8f0;
-            background-color: white;
+            color: var(--dark);
+            text-align: center;
+            font-size: 0.9rem;
         }
-        
-        .layout-option:hover .layout-content {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+        /* Image grid layouts */
+        .layout-grid {
+            width: 80%;
+            height: 80%;
+            display: grid;
+            gap: 0.25rem;
         }
+
+        .layout-grid-1 {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .layout-grid-2 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .layout-grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .layout-grid-2-2 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .layout-grid-3-2 {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            width: 80%;
+            height: 80%;
+        }
+
+        .layout-grid-3-2 .top-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.25rem;
+            height: 50%;
+        }
+
+        .layout-grid-3-2 .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.25rem;
+            height: 50%;
+            padding: 0 15%;
+        }
+
+        .layout-grid-3-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .grid-item {
+            background-color: #dbeafe;
+            border-radius: 0.25rem;
+        }
+
+        .group-image {
+            width: 80%;
+            height: 70%;
+            background-color: #dbeafe;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .group-caption {
+            width: 80%;
+            height: 10%;
+            margin-top: 0.5rem;
+            background-color: #e2e8f0;
+            border-radius: 0.25rem;
+        }
+
         
         .layout-preview-img {
             width: 100%;
@@ -859,7 +971,7 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
         toastMessage: '',
         toastType: 'success',
         selectedFile: null,
-        currentStep: 1,
+        currentStep: <?php echo $current_step; ?>,
         themeColor: 'indigo',
         debug: {
             showDebug: false,
@@ -918,9 +1030,9 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             <!-- Important: Fixed the enctype attribute for file uploads -->
             <form method="post" enctype="multipart/form-data" @submit="isLoading = true; debug.messages.push('Form submitted')">
                 <!-- Header Section -->
-                <div class="card slide-up">
+                <div class="card slide-up" :class="{'border-indigo-500': currentStep === 1, 'border-green-500': currentStep > 1}">
                     <div class="card-header">
-                        <div class="card-header-icon">
+                        <div class="card-header-icon" :class="{'bg-green-500': currentStep > 1}">
                             <i class="fas fa-image"></i>
                         </div>
                         <h2 class="card-title">Header Image</h2>
@@ -943,9 +1055,9 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 </div>
 
                 <!-- Content Section -->
-                <div class="card slide-up" style="animation-delay: 0.1s">
+                <div class="card slide-up" style="animation-delay: 0.1s" :class="{'border-indigo-500': currentStep === 1, 'border-green-500': currentStep > 1}">
                     <div class="card-header">
-                        <div class="card-header-icon">
+                        <div class="card-header-icon" :class="{'bg-green-500': currentStep > 1}">
                             <i class="fas fa-pen-fancy"></i>
                         </div>
                         <h2 class="card-title">Email Content</h2>
@@ -959,161 +1071,185 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                     </div>
                 </div>
 
-                <!-- Layout Section - IMPROVED VERSION -->
-                <div class="card slide-up" style="animation-delay: 0.2s">
+                <!-- Layout Section - Redesigned for better professional look -->
+                <div class="card slide-up" style="animation-delay: 0.2s" :class="{'border-indigo-500': currentStep === 2, 'border-green-500': currentStep > 2}">
                     <div class="card-header">
-                        <div class="card-header-icon">
+                        <div class="card-header-icon" :class="{'bg-green-500': currentStep > 2}">
                             <i class="fas fa-th-large"></i>
                         </div>
                         <h2 class="card-title">Image Layout</h2>
                     </div>
                     
-                    <!-- New improved layout grid -->
-                    <div class="layout-grid">
-                        <!-- No Images Option -->
-                        <label class="layout-option">
-                            <input type="radio" name="layout_type" value="0" checked
-                                   @change="debug.messages.push('Layout changed to: No Images')">
-                            <div class="layout-content">
-                                <div class="layout-preview">
-                                    <div class="flex items-center justify-center w-full h-full">
-                                        <i class="fas fa-ban text-gray-400 text-3xl"></i>
+                    <div class="layout-options">
+                        <!-- No Images -->
+                        <div class="layout-option">
+                            <input type="radio" id="layout-none" name="layout_type" value="0" checked 
+                                  @change="debug.messages.push('Layout changed to: No Images')">
+                            <label for="layout-none" class="layout-content">
+                                <div class="layout-visual">
+                                    <div class="option-check">
+                                        <i class="fas fa-check text-xs"></i>
                                     </div>
+                                    <i class="fas fa-ban text-gray-400 text-xl"></i>
                                 </div>
-                                <div class="layout-label">No Images</div>
-                            </div>
-                        </label>
+                                <div class="layout-title">No Images</div>
+                            </label>
+                        </div>
                         
-                        <!-- Group Photo Option -->
-                        <label class="layout-option">
-                            <input type="radio" name="layout_type" value="group"
-                                   @change="debug.messages.push('Layout changed to: Group Photo')">
-                            <div class="layout-content">
-                                <div class="layout-preview">
-                                    <div class="flex flex-col items-center justify-center w-full h-full">
-                                        <i class="fas fa-users text-gray-400 text-3xl mb-2"></i>
-                                        <div class="bg-gray-300 w-3/4 h-1 rounded-full"></div>
-                                        <div class="bg-gray-200 w-1/2 h-1 rounded-full mt-2"></div>
+                        <!-- Group Photo -->
+                        <div class="layout-option">
+                            <input type="radio" id="layout-group" name="layout_type" value="group"
+                                  @change="debug.messages.push('Layout changed to: Group Photo')">
+                            <label for="layout-group" class="layout-content">
+                                <div class="layout-visual">
+                                    <div class="option-check">
+                                        <i class="fas fa-check text-xs"></i>
                                     </div>
-                                </div>
-                                <div class="layout-label">Group Photo</div>
-                            </div>
-                        </label>
-                        
-                        <!-- Single Employee Option -->
-                        <label class="layout-option">
-                            <input type="radio" name="layout_type" value="1"
-                                   @change="debug.messages.push('Layout changed to: Single Employee')">
-                            <div class="layout-content">
-                                <div class="layout-preview">
-                                    <div class="layout-employee-grid grid-1x1">
-                                        <div class="employee-placeholder"></div>
-                                    </div>
-                                </div>
-                                <div class="layout-label">Single Employee</div>
-                            </div>
-                        </label>
-                        
-                        <!-- Two Employees Option -->
-                        <label class="layout-option">
-                            <input type="radio" name="layout_type" value="2"
-                                   @change="debug.messages.push('Layout changed to: Two Employees (1x2)')">
-                            <div class="layout-content">
-                                <div class="layout-preview">
-                                    <div class="layout-employee-grid grid-1x2">
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                    </div>
-                                </div>
-                                <div class="layout-label">Two Employees (1×2)</div>
-                            </div>
-                        </label>
-                        
-                        <!-- Three Employees Option -->
-                        <label class="layout-option">
-                            <input type="radio" name="layout_type" value="3"
-                                   @change="debug.messages.push('Layout changed to: Three Employees (1x3)')">
-                            <div class="layout-content">
-                                <div class="layout-preview">
-                                    <div class="layout-employee-grid grid-1x3">
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                    </div>
-                                </div>
-                                <div class="layout-label">Three Employees (1×3)</div>
-                            </div>
-                        </label>
-                        
-                        <!-- Four Employees Option -->
-                        <label class="layout-option">
-                            <input type="radio" name="layout_type" value="2-2"
-                                   @change="debug.messages.push('Layout changed to: Four Employees (2x2)')">
-                            <div class="layout-content">
-                                <div class="layout-preview">
-                                    <div class="layout-employee-grid grid-2x2">
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                    </div>
-                                </div>
-                                <div class="layout-label">Four Employees (2×2)</div>
-                            </div>
-                        </label>
-                        
-                        <!-- Five Employees Option -->
-                        <label class="layout-option">
-                            <input type="radio" name="layout_type" value="3-2"
-                                   @change="debug.messages.push('Layout changed to: Five Employees (3-2)')">
-                            <div class="layout-content">
-                                <div class="layout-preview">
-                                    <div class="grid-3-2">
-                                        <div class="grid-3-2-top">
-                                            <div class="employee-placeholder"></div>
-                                            <div class="employee-placeholder"></div>
-                                            <div class="employee-placeholder"></div>
+                                    <div class="flex flex-col items-center">
+                                        <div class="group-image flex items-center justify-center">
+                                            <i class="fas fa-users text-blue-400 text-xl"></i>
                                         </div>
-                                        <div class="grid-3-2-bottom">
-                                            <div class="employee-placeholder"></div>
-                                            <div class="employee-placeholder"></div>
+                                        <div class="group-caption"></div>
+                                    </div>
+                                </div>
+                                <div class="layout-title">Group Photo</div>
+                            </label>
+                        </div>
+                        
+                        <!-- Single Employee -->
+                        <div class="layout-option">
+                            <input type="radio" id="layout-single" name="layout_type" value="1"
+                                  @change="debug.messages.push('Layout changed to: Single Employee')">
+                            <label for="layout-single" class="layout-content">
+                                <div class="layout-visual">
+                                    <div class="option-check">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </div>
+                                    <div class="layout-grid layout-grid-1">
+                                        <div class="grid-item flex items-center justify-center">
+                                            <i class="fas text-blue-400 text-xl"></i>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="layout-label">Five Employees (3-2)</div>
-                            </div>
-                        </label>
+                                <div class="layout-title">Single Employee</div>
+                            </label>
+                        </div>
                         
-                        <!-- Nine Employees Option -->
-                        <label class="layout-option">
-                            <input type="radio" name="layout_type" value="3-3"
-                                   @change="debug.messages.push('Layout changed to: Nine Employees (3x3)')">
-                            <div class="layout-content">
-                                <div class="layout-preview">
-                                    <div class="layout-employee-grid grid-3x3">
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
-                                        <div class="employee-placeholder"></div>
+                        <!-- Two Employees (1x2) -->
+                        <div class="layout-option">
+                            <input type="radio" id="layout-two" name="layout_type" value="2"
+                                  @change="debug.messages.push('Layout changed to: Two Employees (1x2)')">
+                            <label for="layout-two" class="layout-content">
+                                <div class="layout-visual">
+                                    <div class="option-check">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </div>
+                                    <div class="layout-grid layout-grid-2">
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
                                     </div>
                                 </div>
-                                <div class="layout-label">Nine Employees (3×3)</div>
-                            </div>
-                        </label>
+                                <div class="layout-title">Two Employees (1×2)</div>
+                            </label>
+                        </div>
+                        
+                        <!-- Three Employees (1x3) -->
+                        <div class="layout-option">
+                            <input type="radio" id="layout-three" name="layout_type" value="3"
+                                  @change="debug.messages.push('Layout changed to: Three Employees (1x3)')">
+                            <label for="layout-three" class="layout-content">
+                                <div class="layout-visual">
+                                    <div class="option-check">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </div>
+                                    <div class="layout-grid layout-grid-3">
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                    </div>
+                                </div>
+                                <div class="layout-title">Three Employees (1×3)</div>
+                            </label>
+                        </div>
+                        
+                        <!-- Four Employees (2x2) -->
+                        <div class="layout-option">
+                            <input type="radio" id="layout-four" name="layout_type" value="2-2"
+                                  @change="debug.messages.push('Layout changed to: Four Employees (2x2)')">
+                            <label for="layout-four" class="layout-content">
+                                <div class="layout-visual">
+                                    <div class="option-check">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </div>
+                                    <div class="layout-grid layout-grid-2-2">
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                    </div>
+                                </div>
+                                <div class="layout-title">Four Employees (2×2)</div>
+                            </label>
+                        </div>
+                        
+                        <!-- Five Employees (3-2) -->
+                        <div class="layout-option">
+                            <input type="radio" id="layout-five" name="layout_type" value="3-2"
+                                  @change="debug.messages.push('Layout changed to: Five Employees (3-2)')">
+                            <label for="layout-five" class="layout-content">
+                                <div class="layout-visual">
+                                    <div class="option-check">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </div>
+                                    <div class="layout-grid-3-2">
+                                        <div class="top-row">
+                                            <div class="grid-item"></div>
+                                            <div class="grid-item"></div>
+                                            <div class="grid-item"></div>
+                                        </div>
+                                        <div class="bottom-row">
+                                            <div class="grid-item"></div>
+                                            <div class="grid-item"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layout-title">Five Employees (3-2)</div>
+                            </label>
+                        </div>
+                        
+                        <!-- Nine Employees (3x3) -->
+                        <div class="layout-option">
+                            <input type="radio" id="layout-nine" name="layout_type" value="3-3"
+                                  @change="debug.messages.push('Layout changed to: Nine Employees (3x3)')">
+                            <label for="layout-nine" class="layout-content">
+                                <div class="layout-visual">
+                                    <div class="option-check">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </div>
+                                    <div class="layout-grid layout-grid-3-3">
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                        <div class="grid-item"></div>
+                                    </div>
+                                </div>
+                                <div class="layout-title">Nine Employees (3×3)</div>
+                            </label>
+                        </div>
                     </div>
-
+                    
                     <div id="image-uploads" class="space-y-4 mt-6"></div>
                 </div>
 
                 <!-- Signature Section -->
-                <div class="card slide-up" style="animation-delay: 0.3s">
+                <div class="card slide-up" style="animation-delay: 0.3s" :class="{'border-indigo-500': currentStep === 3, 'border-green-500': currentStep > 3}">
                     <div class="card-header">
-                        <div class="card-header-icon">
+                        <div class="card-header-icon" :class="{'bg-green-500': currentStep > 3}">
                             <i class="fas fa-signature"></i>
                         </div>
                         <h2 class="card-title">Email Signature</h2>
@@ -1148,9 +1284,9 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 </div>
 
                 <div class="flex justify-between space-x-4 mt-6">
-                    <button type="button" @click="debug.showDebug = !debug.showDebug" class="btn btn-secondary">
+                    <!-- <button type="button" @click="debug.showDebug = !debug.showDebug" class="btn btn-secondary">
                         <i class="fas fa-bug mr-2"></i>Toggle Debug
-                    </button>
+                    </button> -->
                     
                     <div>
                         <button type="reset" class="btn btn-secondary">
@@ -1201,8 +1337,8 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
                 <?php if (isset($preview_html) && !empty($preview_html)): ?>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="copyToClipboard()" class="btn btn-success">
+                   <div class="flex flex-wrap gap-2">
+                       <!--   <button onclick="copyToClipboard()" class="btn btn-success">
                             <i class="fas fa-copy mr-2"></i>Copy with Formatting
                         </button>
                         <button onclick="copyForOutlook()" class="btn btn-primary">
@@ -1219,7 +1355,7 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                         </button>
                         <button onclick="showManualCopyInstructions()" class="btn btn-secondary" title="What to do if copying doesn't work">
                             <i class="fas fa-question-circle"></i>
-                        </button>
+                        </button> -->
                     </div>
                 <?php endif; ?>
             </div>
@@ -1407,8 +1543,8 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     previewContainer.innerHTML = `
-                        <img src="${e.target.result}" class="rounded-lg shadow-md">
-                        <button type="button" class="btn btn-error mt-2" onclick="removeImage(this)">
+                        <img src="${e.target.result}" class="rounded-lg shadow-md" id="preview-${input.name}">
+                        <button type="button" class="btn btn-error mt-2" onclick="removeImage(this, '${input.name}')">
                             <i class="fas fa-trash-alt mr-2"></i>Remove
                         </button>
                     `;
@@ -1425,25 +1561,38 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             }
         }
 
-        function removeImage(button) {
+        function removeImage(button, inputName) {
             const previewContainer = button.parentElement;
-            const fileUpload = previewContainer.previousElementSibling.querySelector('input[type="file"]');
+            const parentCard = previewContainer.closest('.card');
+            const fileUpload = parentCard.querySelector(`input[name="${inputName}"]`);
             
-            // Reset the file input
-            fileUpload.value = '';
+            // Create a new file input to replace the current one
+            const newFileInput = document.createElement('input');
+            newFileInput.type = 'file';
+            newFileInput.name = inputName;
+            newFileInput.accept = 'image/*';
+            newFileInput.setAttribute('onchange', 'updateFileName(this)');
+            
+            // Replace the old file input with the new one
+            fileUpload.parentNode.replaceChild(newFileInput, fileUpload);
             
             // Remove the preview and hide the filename
             previewContainer.remove();
             
             // Hide the filename display
-            const fileNameDisplay = fileUpload.parentElement.nextElementSibling;
-            fileNameDisplay.style.display = 'none';
+            const fileNameDisplay = parentCard.querySelector('.selected-file');
+            if (fileNameDisplay) {
+                fileNameDisplay.style.display = 'none';
+            }
             
             // Update debug info if available
             const debug = document.querySelector('[x-data]').__x.$data.debug;
             if (debug) {
-                debug.messages.push(`File removed from ${fileUpload.name}`);
+                debug.messages.push(`File removed from ${inputName}`);
             }
+            
+            // Show toast notification
+            showToast('Image removed successfully', 'success');
         }
 
         function showToast(message, type = 'success', duration = 3000) {
@@ -2830,8 +2979,24 @@ function generateGroupImage($group_image, $group_caption, $fontFamily = null) {
 
 /**
  * Generate HTML for an employee image grid
+ * Improved to handle proper alignment based on number of images
  */
 function generateImageGrid($images, $layout_type, $employee_details = [], $fontFamily = null) {
+    // Filter out empty images but keep track of their positions
+    $filteredImages = [];
+    $validPositions = [];
+    foreach ($images as $index => $imageData) {
+        if (!empty($imageData)) {
+            $filteredImages[] = $imageData;
+            $validPositions[] = $index;
+        }
+    }
+    
+    // If no valid images, return empty
+    if (empty($filteredImages)) {
+        return '';
+    }
+    
     // Set font family if not provided
     if ($fontFamily === null) {
         $fontFamily = '"Proxima Nova RG", "Proxima Nova", Arial, sans-serif';
@@ -2839,13 +3004,7 @@ function generateImageGrid($images, $layout_type, $employee_details = [], $fontF
     
     $html = '<tr><td><table cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="width:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family:' . $fontFamily . ' !important;">';
     
-    $generateEmployeeCell = function($index, $cellWidth = 200) use ($images, $employee_details, $fontFamily) {
-        if (!isset($images[$index])) {
-            return '';
-        }
-        
-        $imageData = $images[$index];
-        
+    $generateEmployeeCell = function($index, $imageData, $details, $cellWidth = 200) use ($fontFamily) {
         $html = '<td align="center" style="padding:10px; width:' . $cellWidth . 'px; font-family:' . $fontFamily . ' !important;">';
         $html .= '<div style="text-align:center; font-family:' . $fontFamily . ' !important;">';
         
@@ -2855,15 +3014,15 @@ function generateImageGrid($images, $layout_type, $employee_details = [], $fontF
             $html .= '<div style="height:15px; line-height:15px; font-size:15px;">&nbsp;</div>';
         }
         
-        if (isset($employee_details[$index]) && !empty($employee_details[$index]['name'])) {
+        if (isset($details[$index]) && !empty($details[$index]['name'])) {
             $html .= '<div style="padding-top:15px; font-family:' . $fontFamily . ' !important;">';
             $html .= '<span style="font-weight:bold; font-size:16px; font-family:' . $fontFamily . ' !important;">' . 
-                     htmlspecialchars($employee_details[$index]['name']) . '</span><br>';
+                     htmlspecialchars($details[$index]['name']) . '</span><br>';
                      
             // Always include a font tag for Outlook compatibility
             $html .= '<!--[if mso]><font face="' . $fontFamily . '"><![endif]-->';
             $html .= '<span style="font-size:14px; font-family:' . $fontFamily . ' !important;">' . 
-                     htmlspecialchars($employee_details[$index]['title']) . '</span>';
+                     htmlspecialchars($details[$index]['title']) . '</span>';
             $html .= '<!--[if mso]></font><![endif]-->';
             
             $html .= '</div>';
@@ -2873,74 +3032,77 @@ function generateImageGrid($images, $layout_type, $employee_details = [], $fontF
         
         return $html;
     };
-
-    switch($layout_type) {
-        case '1': // Single image
-            if (!empty($images)) {
-                $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-                $html .= $generateEmployeeCell(0, 200);
-                $html .= '</tr></table></td></tr>';
-            }
-            break;
-
-        case '2': // Two images (1x2)
+    
+    // Calculate number of valid images
+    $validImageCount = count($filteredImages);
+    
+    // Special handling based on actual number of images
+    if ($validImageCount === 1) {
+        // Single image is always centered
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        $html .= $generateEmployeeCell($validPositions[0], $filteredImages[0], $employee_details, 200);
+        $html .= '</tr></table></td></tr>';
+    } 
+    else if ($validImageCount === 2) {
+        // Two images side by side, centered
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        $html .= $generateEmployeeCell($validPositions[0], $filteredImages[0], $employee_details, 200);
+        $html .= $generateEmployeeCell($validPositions[1], $filteredImages[1], $employee_details, 200);
+        $html .= '</tr></table></td></tr>';
+    }
+    else if ($validImageCount === 3) {
+        // Three images in a row
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        for ($i = 0; $i < 3; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '</tr></table></td></tr>';
+    }
+    else if ($validImageCount === 4) {
+        // 2x2 grid
+        // First row - 2 images
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        for ($i = 0; $i < 2; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '</tr></table></td></tr>';
+        
+        // Second row - 2 images
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        for ($i = 2; $i < 4; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '</tr></table></td></tr>';
+    }
+    else if ($validImageCount === 5) {
+        // First row - 3 images
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        for ($i = 0; $i < 3; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '</tr></table></td></tr>';
+        
+        // Second row - 2 images (centered)
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        $html .= '<td width="100" style="font-family:' . $fontFamily . ' !important;">&nbsp;</td>'; // Spacer for centering
+        for ($i = 3; $i < 5; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '<td width="100" style="font-family:' . $fontFamily . ' !important;">&nbsp;</td>'; // Spacer for centering
+        $html .= '</tr></table></td></tr>';
+    }
+    else if ($validImageCount > 5) {
+        // Handle more than 5 images in rows of 3
+        for ($row = 0; $row < ceil($validImageCount / 3); $row++) {
             $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-            for($i = 0; $i < 2; $i++) {
-                $html .= $generateEmployeeCell($i, 200);
-            }
-            $html .= '</tr></table></td></tr>';
-            break;
-
-        case '3': // Three images (1x3)
-            $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-            for($i = 0; $i < 3; $i++) {
-                $html .= $generateEmployeeCell($i, 200);
-            }
-            $html .= '</tr></table></td></tr>';
-            break;
-
-        case '2-2': // Four images (2x2)
-            for($row = 0; $row < 2; $row++) {
-                $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-                for($col = 0; $col < 2; $col++) {
-                    $index = $row * 2 + $col;
-                    $html .= $generateEmployeeCell($index, 200);
+            for ($col = 0; $col < 3; $col++) {
+                $index = $row * 3 + $col;
+                if ($index < $validImageCount) {
+                    $html .= $generateEmployeeCell($validPositions[$index], $filteredImages[$index], $employee_details, 200);
                 }
-                $html .= '</tr></table></td></tr>';
-            }
-            break;
-
-        case '3-2': // Five images (3-2)
-            // First row with 3 images
-            $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-            for($i = 0; $i < 3; $i++) {
-                $html .= $generateEmployeeCell($i, 200);
             }
             $html .= '</tr></table></td></tr>';
-            
-            // Second row with 2 images (centered)
-            $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-            $html .= '<td width="100" style="font-family:' . $fontFamily . ' !important;">&nbsp;</td>'; // Spacer for centering
-            for($i = 3; $i < 5; $i++) {
-                $html .= $generateEmployeeCell($i, 200);
-            }
-            $html .= '<td width="100" style="font-family:' . $fontFamily . ' !important;">&nbsp;</td>'; // Spacer for centering
-            $html .= '</tr></table></td></tr>';
-            break;
-
-        case '3-3': // Nine images (3x3)
-            for($row = 0; $row < 3; $row++) {
-                $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-                for($col = 0; $col < 3; $col++) {
-                    $index = $row * 3 + $col;
-                    $html .= $generateEmployeeCell($index, 200);
-                }
-                $html .= '</tr></table></td></tr>';
-            }
-            break;
-
-        default: // No images
-            break;
+        }
     }
     
     $html .= '</table></td></tr>';
