@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emma Wilson | Senior Delivery Manager</title>
+    <link rel="icon" type="image/x-icon" href="./assets/icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        :root {
+            --primary: #2b6cb0;
+            --primary-dark: #1a365d;
+            --text-primary: #2d3436;
+            --text-secondary: #4a5568;
+        }
+
+        body {
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background: transparent;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(-45deg, rgba(244, 247, 249, 0.7), rgba(233, 236, 239, 0.7), rgba(223, 227, 230, 0.7), rgba(213, 217, 220, 0.7));
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        #particles-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Three.js animated background */
+        #three-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .profile-header {
+            text-align: left;
+            margin-bottom: 15px;
+            padding: 20px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.25);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+
+        .profile-header:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(31, 38, 135, 0.15);
+        }
+
+        .employee-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .employee-role {
+            font-size: 1.3rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 3px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .key-details {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.25);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .detail-item:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .detail-icon {
+            width: 22px;
+            height: 22px;
+            color: var(--primary);
+        }
+
+        .detail-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .content-section {
+            margin: 15px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+
+        .content-section:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(31, 38, 135, 0.15);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.25);
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .responsibilities-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .responsibilities-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .responsibilities-list li:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            opacity: 0.7;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .social-link {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.25);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(31, 38, 135, 0.1);
+        }
+
+        .social-link:hover {
+            transform: translateY(-3px) scale(1.05);
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 8px 20px rgba(31, 38, 135, 0.15);
+        }
+
+        .social-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .social-link:hover .social-icon {
+            transform: scale(1.1);
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin: 0;
+            display: block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hero-image:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .profile-header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .profile-image-wrapper {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.25);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .company-logo {
+            position: absolute;
+            top: 40px;
+            right: 60px;
+            width: 160px;
+            height: auto;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @media (max-width: 900px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .employee-name {
+                font-size: 2rem;
+            }
+            
+            .key-details {
+                gap: 8px;
+            }
+            
+            .detail-item {
+                padding: 8px 12px;
+            }
+            
+            .hero-image {
+                height: 250px;
+            }
+
+            .company-logo {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Layers -->
+    <div class="background"></div>
+    <div class="particles-container">
+        <canvas id="particles-canvas"></canvas>
+    </div>
+    <canvas id="three-bg"></canvas>
+    
+    <div class="container">
+        <header class="profile-header">
+            <div class="profile-header-content">
+                <div class="profile-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                         alt="Emma Wilson" 
+                         class="profile-image">
+                </div>
+                <div class="profile-info">
+                    <img src="./assets/vdart.png" alt="VDart Logo" class="company-logo">
+                    <h1 class="employee-name">Emma Wilson</h1>
+                    <p class="employee-role">Senior Delivery Manager</p>
+                    
+                    <div class="key-details">
+                        <div class="detail-item">
+                            <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="detail-text">12+ Years</span>
+                        </div>
+                        <div class="detail-item">
+                            <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span class="detail-text">New York</span>
+                        </div>
+                        <div class="detail-item">
+                            <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="detail-text">Fortune 500</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid-layout">
+            <!-- Left column -->
+            <div>
+                <section class="content-section">
+                    <h2 class="section-title">Professional Overview</h2>
+                    <p>Accomplished logistics executive with a distinguished career in global supply chain transformation. 
+                       Led cross-functional teams to implement AI-powered logistics solutions that improved delivery 
+                       efficiency by 42% across multinational operations.</p>
+                </section>
+                
+                <section class="content-section">
+                    <h2 class="section-title">Roles & Responsibilities</h2>
+                    <ul class="responsibilities-list">
+                        <li>Lead end-to-end delivery management for enterprise client engagements across multiple regions</li>
+                        <li>Drive strategic planning, budget management, and resource allocation for complex projects</li>
+                        <li>Oversee multinational teams of 250+ across technical and operational departments</li>
+                        <li>Implement AI-powered supply chain solutions delivering measurable efficiency improvements</li>
+                        <li>Develop and maintain strong client relationships at the executive level</li>
+                        <li>Create and execute risk mitigation strategies to ensure project success</li>
+                        <li>Lead digital transformation initiatives across global organizations</li>
+                        <li>Conduct regular performance analytics and improvement initiatives</li>
+                    </ul>
+                </section>
+            </div>
+            
+            <!-- Right column -->
+            <div>
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                     alt="Emma Wilson" 
+                     class="hero-image">
+                     
+                <section class="content-section">
+                    <h2 class="section-title">Skills & Expertise</h2>
+                    <ul class="responsibilities-list">
+                        <li>Project Management & Strategic Planning</li>
+                        <li>Supply Chain Optimization & Logistics</li>
+                        <li>Enterprise Resource Planning (ERP) Systems</li>
+                        <li>Cross-Functional Team Leadership</li>
+                        <li>Client Relationship Management</li>
+                        <li>Agile & Waterfall Methodologies</li>
+                        <li>Budget Management & Forecasting</li>
+                        <li>Digital Transformation Leadership</li>
+                        <li>Performance Analytics & Reporting</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+
+        <div class="social-links">
+            <a href="#" class="social-link">
+                <img src="https://img.icons8.com/ios-filled/50/1A365D/linkedin.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="https://zoom.us/your-profile" class="social-link">
+                <img src="https://img.icons8.com/color/48/1A365D/zoom.png" alt="Zoom" class="social-icon">
+            </a>
+            <a href="mailto:sarah.johnson@vdart.com" class="social-link">
+                <img src="https://img.icons8.com/fluency/48/1A365D/secured-letter.png" alt="Email" class="social-icon">
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Particle Animation
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let connectionLines = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.velocityX = Math.random() * 0.4 - 0.2;
+                this.velocityY = Math.random() * 0.4 - 0.2;
+                this.size = Math.random() * 2 + 0.5;
+                this.alpha = Math.random() * 0.4 + 0.1;
+                this.color = `rgba(44, 62, 80, ${this.alpha})`;
+            }
+
+            update() {
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+                
+                if (this.x > canvas.width + 100 || this.x < -100 || 
+                    this.y > canvas.height + 100 || this.y < -100) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function calculateDistance(p1, p2) {
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function drawConnections() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const distance = calculateDistance(particles[i], particles[j]);
+                    const maxDistance = 150;
+                    
+                    if (distance < maxDistance) {
+                        const opacity = 1 - (distance / maxDistance);
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(44, 62, 80, ${opacity * 0.15})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            // Fewer particles for better performance
+            const particleCount = Math.min(70, Math.floor(window.innerWidth * window.innerHeight / 20000));
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            drawConnections();
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initParticles();
+        });
+
+        resizeCanvas();
+        initParticles();
+        animate();
+
+        // Three.js Animated Background
+        const threeBg = document.getElementById('three-bg');
+        
+        // Create Scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas: threeBg,
+            alpha: true,
+            antialias: true
+        });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        // Add geometry
+        const geometry = new THREE.IcosahedronGeometry(20, 1);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x2b6cb0,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.07
+        });
+        
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+        
+        // Small stars/dots
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({
+            color: 0x2b6cb0,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.4
+        });
+        
+        const starsVertices = [];
+        for (let i = 0; i < 1000; i++) {
+            const x = (Math.random() - 0.5) * 100;
+            const y = (Math.random() - 0.5) * 100;
+            const z = (Math.random() - 0.5) * 100;
+            starsVertices.push(x, y, z);
+        }
+        
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
+        
+        camera.position.z = 50;
+        
+        // Animation loop
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            
+            sphere.rotation.x += 0.001;
+            sphere.rotation.y += 0.002;
+            
+            stars.rotation.x += 0.0005;
+            stars.rotation.y += 0.0005;
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        animateThree();
+    </script>
+</body>
+</html>

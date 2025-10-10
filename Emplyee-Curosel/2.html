@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sarah Johnson | Senior Delivery Manager</title>
+    <link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFFVkb9_fYRPB8lR8SpcUXbHeQ0uSryGEvUe8R0VIF0Ib24rWuSfFEGirEtYu8-F9JTnQ&usqp=CAU">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        :root {
+            --primary: #2b6cb0;
+            --primary-dark: #1a365d;
+            --text-primary: #2d3436;
+            --text-secondary: #4a5568;
+        }
+
+        /* Background Styles */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(-45deg, rgba(244, 247, 249, 0.7), rgba(233, 236, 239, 0.7), rgba(223, 227, 230, 0.7), rgba(213, 217, 220, 0.7));
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #particles-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #three-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        /* Core Styles */
+        body {
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background: transparent;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-header {
+            padding: 32px;
+            margin-bottom: 32px;
+            background: rgba(255,255,255,0.95);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .profile-header-content {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .profile-image-wrapper {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid rgba(203, 213, 225, 0.3);
+            flex-shrink: 0;
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .employee-name {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+            color: var(--primary-dark);
+            line-height: 1.2;
+        }
+
+        .employee-role {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-weight: 500;
+            letter-spacing: -0.25px;
+        }
+
+        .key-details {
+            display: flex;
+            gap: 12px;
+            margin: 0;
+            flex-wrap: wrap;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: rgba(241, 245, 249, 0.6);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+            border-radius: 8px;
+            font-size: 0.9375rem;
+        }
+
+        .detail-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+
+        /* Content Sections */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .content-section {
+            margin: 16px 0;
+            padding: 24px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        .section-title {
+            font-size: 1.375rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(203, 213, 225, 0.3);
+            color: var(--primary-dark);
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 15px;
+        }
+
+        .achievement-item {
+            padding: 16px;
+            text-align: center;
+            background: rgba(241, 245, 249, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        .achievement-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+        }
+
+        .achievement-text {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        .timeline {
+            position: relative;
+            padding: 0 10px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 16px;
+            width: 2px;
+            height: 100%;
+            background: rgba(43, 108, 176, 0.1);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-left: 32px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            background: rgba(241, 245, 249, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        .timeline-year {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-size: 1rem;
+            color: var(--primary-dark);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .timeline-item p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -24px;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .social-link {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(241, 245, 249, 0.6);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .social-icon {
+            width: 22px;
+            height: 22px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px 16px;
+            }
+
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header {
+                padding: 24px;
+            }
+
+            .employee-name {
+                font-size: 1.875rem;
+            }
+
+            .profile-image-wrapper {
+                width: 100px;
+                height: 100px;
+            }
+
+            .key-details {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-image {
+                height: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Layers -->
+    <div class="background"></div>
+    <div class="particles-container">
+        <canvas id="particles-canvas"></canvas>
+    </div>
+    <canvas id="three-bg"></canvas>
+    
+    <div class="container">
+        <header class="profile-header">
+            <div class="profile-header-content">
+                <div class="profile-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" 
+                         alt="Sarah Johnson" 
+                         class="profile-image">
+                </div>
+                <div class="profile-info">
+                    <h1 class="employee-name">Sarah Johnson</h1>
+                    <p class="employee-role">Senior Delivery Manager</p>
+                    <div class="key-details">
+                        <div class="detail-item">
+                            <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span>12+ Years</span>
+                        </div>
+                        <div class="detail-item">
+                            <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>New York</span>
+                        </div>
+                        <div class="detail-item">
+                            <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span>Fortune 500</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid-layout">
+            <!-- Left Column -->
+            <div>
+                <section class="content-section">
+                    <h2 class="section-title">Professional Overview</h2>
+                    <p>Accomplished logistics executive with a distinguished career in global supply chain transformation. Led cross-functional teams to implement AI-powered logistics solutions that improved delivery efficiency by 42% across multinational operations.</p>
+                </section>
+                
+                <section class="content-section">
+                    <h2 class="section-title">Key Achievements</h2>
+                    <div class="achievements-grid">
+                        <div class="achievement-item">
+                            <div class="achievement-icon">🚀</div>
+                            <div class="achievement-number">42%</div>
+                            <div class="achievement-text">Delivery Efficiency</div>
+                        </div>
+                        <div class="achievement-item">
+                            <div class="achievement-icon">💰</div>
+                            <div class="achievement-number">$12M</div>
+                            <div class="achievement-text">Cost Savings</div>
+                        </div>
+                        <div class="achievement-item">
+                            <div class="achievement-icon">👥</div>
+                            <div class="achievement-number">250+</div>
+                            <div class="achievement-text">Team Members</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80" 
+                     alt="Sarah Johnson" 
+                     class="hero-image">
+                
+                <section class="content-section">
+                    <h2 class="section-title">Career Journey</h2>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-year">2020-Present</div>
+                            <h3 class="timeline-title">VDart Solutions - Senior Delivery Manager</h3>
+                            <p>Led digital transformation initiatives across 14 countries</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-year">2015-2020</div>
+                            <h3 class="timeline-title">Global Logistics Corp - Operations Director</h3>
+                            <p>Managed $450M annual logistics budget with 99.8% accuracy</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-year">2012-2015</div>
+                            <h3 class="timeline-title">Tech Solutions Inc - Project Manager</h3>
+                            <p>Successfully delivered 25+ major projects</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="social-links">
+            <a href="#" class="social-link">
+                <img src="https://img.icons8.com/ios-filled/50/1A365D/linkedin.png" alt="LinkedIn" class="social-icon">
+            </a>
+            <a href="#" class="social-link">
+                <img src="https://img.icons8.com/color/48/1A365D/zoom.png" alt="Zoom" class="social-icon">
+            </a>
+            <a href="#" class="social-link">
+                <img src="https://img.icons8.com/fluency/48/1A365D/secured-letter.png" alt="Email" class="social-icon">
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Particle Animation
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.velocityX = Math.random() * 0.4 - 0.2;
+                this.velocityY = Math.random() * 0.4 - 0.2;
+                this.size = Math.random() * 2 + 0.5;
+                this.alpha = Math.random() * 0.4 + 0.1;
+            }
+
+            update() {
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+                
+                if (this.x > canvas.width + 100 || this.x < -100 || 
+                    this.y > canvas.height + 100 || this.y < -100) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(44, 62, 80, ${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const particleCount = Math.min(70, Math.floor(window.innerWidth * window.innerHeight / 20000));
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            drawConnections();
+            requestAnimationFrame(animateParticles);
+        }
+
+        function drawConnections() {
+            particles.forEach((p1, i) => {
+                particles.slice(i + 1).forEach(p2 => {
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.strokeStyle = `rgba(44, 62, 80, ${1 - distance/150})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                });
+            });
+        }
+
+        // Three.js Background
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas: document.querySelector('#three-bg'),
+            alpha: true,
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Create rotating geometry
+        const geometry = new THREE.IcosahedronGeometry(20, 1);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x2b6cb0,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.07
+        });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+
+        camera.position.z = 50;
+
+        // Animation loop
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            sphere.rotation.x += 0.001;
+            sphere.rotation.y += 0.002;
+            renderer.render(scene, camera);
+        }
+
+        // Window resize handlers
+        function handleResize() {
+            // Particle canvas
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+
+            // Three.js
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Initialize
+        window.addEventListener('resize', handleResize);
+        handleResize();
+        animateParticles();
+        animateThree();
+    </script>
+</body>
+</html>

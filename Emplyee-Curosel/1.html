@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VDart Delivery Team</title>
+    <link rel="icon" type="image/x-icon" href="./assets/icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(-45deg, #f4f7f9, #e9ecef, #dfe3e6, #d5d9dc);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+        /* Hero Image */
+        .hero-image {
+            width: 100%;
+            max-width: 1200px;
+            height: 300px;
+            object-fit: cover;
+            object-position: center;
+            margin-top: auto;
+            border-radius: 1px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+            display: block;
+        }
+
+        .company-header {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 40px 20px;
+        }
+
+        .company-title {
+            font-size: 2.8em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .company-description {
+            color: #4a5568;
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+
+        .team-section {
+            margin: 5px 0;
+            padding: 40px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .team-description {
+            text-align: center;
+            color: #4a5568;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            font-size: 1em;
+        }
+
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            height: 520px;
+            overflow: hidden;
+            margin: 30px 0;
+        }
+
+        .carousel-track {
+            display: flex;
+            position: relative;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .carousel-item {
+            position: absolute;
+            width: 360px;
+            height: 480px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            opacity: 0.5;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+            cursor: pointer;
+        }
+
+        .carousel-item.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .carousel-item.prev {
+            transform: translate(-125%, -50%) scale(0.7);
+            opacity: 0.3;
+        }
+
+        .carousel-item.next {
+            transform: translate(25%, -50%) scale(0.7);
+            opacity: 0.3;
+        }
+
+        .employee-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .employee-details {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 25px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            color: white;
+        }
+
+        .employee-name {
+            font-size: 1.6em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .employee-role {
+            font-size: 1em;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            color: #f8f9fa;
+        }
+
+        .employee-insight {
+            font-size: 0.9em;
+            opacity: 0.85;
+            line-height: 1.4;
+        }
+
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.85);
+            border: 1px solid rgba(0,0,0,0.05);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.4em;
+            z-index: 3;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #495057;
+            backdrop-filter: blur(4px);
+        }
+
+        .nav-button:hover {
+            background: #fff;
+            transform: translateY(-50%) scale(1.1);
+            color: #3498db;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .prev-button {
+            left: 20px;
+        }
+
+        .next-button {
+            right: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px 15px;
+            }
+
+            .company-title {
+                font-size: 2.2em;
+            }
+
+            .carousel-container {
+                height: 440px;
+            }
+
+            .carousel-item {
+                width: 280px;
+                height: 380px;
+            }
+
+            .employee-name {
+                font-size: 1.3em;
+            }
+
+            .nav-button {
+                width: 35px;
+                height: 35px;
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles-canvas"></canvas>
+    
+    <div class="container">
+        <header class="company-header">
+            <h1 class="company-title">VDart Delivery Solutions</h1>
+            <p class="company-description">
+                Pioneering logistics excellence since 2010, VDart delivers innovative supply chain solutions 
+                with 99.9% reliability. Our AI-powered tracking system and dedicated team ensure your 
+                shipments arrive faster, safer, and smarter.
+            </p>
+        </header>
+
+        <!-- Hero Image -->
+        <img src="./assets/Linkedin Banner.png" 
+             alt="Banner" 
+             class="hero-image">
+
+        <section class="team-section">
+            <h2 class="section-title">Our Development Team</h2>
+            <p class="team-description">
+                Behind our cutting-edge delivery platform stands a world-class team of developers, 
+                engineers, and logistics experts. Committed to technological innovation, we continuously 
+                enhance our systems to redefine industry standards.
+            </p>
+
+            <div class="carousel-container">
+                <div class="carousel-track" id="track">
+                    <!-- Team Member 1 -->
+                    <div class="carousel-item active" data-profile="profile1.html">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                             class="employee-image" 
+                             alt="Sarah Johnson">
+                        <div class="employee-details">
+                            <h3 class="employee-name">Sarah Johnson</h3>
+                            <p class="employee-role">Senior Delivery Manager</p>
+                            <p class="employee-insight">10+ years logistics expertise • Certified Supply Chain Professional</p>
+                        </div>
+                    </div>
+
+                    <!-- Team Member 2 -->
+                    <div class="carousel-item" data-profile="profile2.html">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                             class="employee-image" 
+                             alt="Michael Chen">
+                        <div class="employee-details">
+                            <h3 class="employee-name">Michael Chen</h3>
+                            <p class="employee-role">Logistics Coordinator</p>
+                            <p class="employee-insight">Route optimization specialist • Real-time tracking systems expert</p>
+                        </div>
+                    </div>
+
+                    <!-- Team Member 3 -->
+                    <div class="carousel-item" data-profile="profile3.html">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                             class="employee-image" 
+                             alt="Emma Wilson">
+                        <div class="employee-details">
+                            <h3 class="employee-name">Emma Wilson</h3>
+                            <p class="employee-role">Customer Experience Lead</p>
+                            <p class="employee-insight">Customer satisfaction strategist • Process improvement certified</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="nav-button prev-button" id="prev">❮</button>
+                <button class="nav-button next-button" id="next">❯</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Particle Animation
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.velocityX = Math.random() * 0.5 - 0.25;
+                this.velocityY = Math.random() * 0.5 - 0.25;
+                this.size = Math.random() * 2 + 1;
+                this.alpha = Math.random() * 0.3 + 0.1;
+            }
+
+            update() {
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+                
+                if (this.x > canvas.width + 50 || this.x < -50 || 
+                    this.y > canvas.height + 50 || this.y < -50) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(44, 62, 80, ${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 80; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        initParticles();
+        animate();
+
+        // Carousel Functionality
+        const track = document.getElementById('track');
+        const items = document.querySelectorAll('.carousel-item');
+        const prevButton = document.getElementById('prev');
+        const nextButton = document.getElementById('next');
+        let currentIndex = 0;
+        let autoSlideInterval;
+
+        function updateCarousel() {
+            items.forEach((item, index) => {
+                item.classList.remove('active', 'prev', 'next');
+                
+                if(index === currentIndex) {
+                    item.classList.add('active');
+                } else if(index === (currentIndex - 1 + items.length) % items.length) {
+                    item.classList.add('prev');
+                } else if(index === (currentIndex + 1) % items.length) {
+                    item.classList.add('next');
+                }
+            });
+        }
+
+        function slide(direction) {
+            currentIndex = (currentIndex + direction + items.length) % items.length;
+            updateCarousel();
+        }
+
+        function startAutoSlide() {
+            autoSlideInterval = setInterval(() => slide(1), 6000);
+        }
+
+        // Profile Redirection
+        document.querySelectorAll('.carousel-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if(!e.target.closest('.nav-button')) {
+                    window.location.href = item.dataset.profile;
+                }
+            });
+        });
+
+        prevButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            slide(-1);
+        });
+
+        nextButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            slide(1);
+        });
+
+        track.addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
+        track.addEventListener('mouseleave', startAutoSlide);
+
+        updateCarousel();
+        startAutoSlide();
+    </script>
+</body>
+</html>
