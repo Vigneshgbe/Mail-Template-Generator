@@ -40,10 +40,24 @@ function getBase64Image($imagePath) {
 // Variable to store status messages and HTML preview
 $message = '';
 $preview_html = '';
+$current_step = 1;
 
 // Process the form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     error_log("Form submitted. Processing file uploads...");
+    
+    // Determine current step based on form data
+    if (isset($_POST['body_content']) && !empty($_POST['body_content'])) {
+        $current_step = 2;
+    }
+    
+    if (isset($_POST['layout_type']) && $_POST['layout_type'] !== '0') {
+        $current_step = 3;
+    }
+    
+    if (isset($_POST['regards_name']) && !empty($_POST['regards_name'])) {
+        $current_step = 4;
+    }
     
     // Process header image
     $header_image = '';
@@ -187,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($body_content)) {
         error_log("Generating email template...");
         
-        // Use the included function to generate the email template
+        // Options for the email template
         $options = [
             'header_image' => $header_image_data,
             'body_content' => $body_content,
@@ -205,16 +219,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $options['employee_details'] = $employee_details;
         }
         
-        // Call the generateEmailTemplate function
-        // This function should be defined elsewhere in your code
-        if (function_exists('generateEmailTemplate')) {
-            $preview_html = generateEmailTemplate($options);
-            $message = "Template generated successfully!";
-            error_log("Email template generated successfully");
-        } else {
-            error_log("generateEmailTemplate function not found");
-            $message = "Error: Template generation function not available.";
-        }
+        // Generate the template
+        $preview_html = generateEmailTemplate($options);
+        $message = "Template generated successfully!";
+        error_log("Email template generated successfully");
+        $current_step = 4; // Set to completion step
     } else {
         error_log("No body content provided");
         $message = "Please provide email content.";
@@ -353,7 +362,7 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
         }
 
         .form-control {
-            width: 100%;
+            width: 98%;
             padding: 0.75rem 1rem;
             border: 2px solid #e2e8f0;
             border-radius: 0.5rem;
@@ -946,6 +955,100 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             margin: 0 auto;
             width: 66%;
         }
+
+        /* Modal styles for reset confirmation */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.show .modal-container {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #fee2e2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        .modal-icon i {
+            color: #ef4444;
+            font-size: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn-cancel {
+            background: #f1f5f9;
+            color: var(--dark);
+        }
+
+        .btn-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-confirm {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: #dc2626;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -962,11 +1065,14 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
         toastMessage: '',
         toastType: 'success',
         selectedFile: null,
-        currentStep: 1,
+        currentStep: <?php echo $current_step; ?>,
         themeColor: 'indigo',
         debug: {
             showDebug: false,
             messages: []
+        },
+        resetModal: {
+            show: false
         }
     }" class="main-container">
         <!-- Form Section -->
@@ -1021,9 +1127,9 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             <!-- Important: Fixed the enctype attribute for file uploads -->
             <form method="post" enctype="multipart/form-data" @submit="isLoading = true; debug.messages.push('Form submitted')">
                 <!-- Header Section -->
-                <div class="card slide-up">
+                <div class="card slide-up" :class="{'border-indigo-500': currentStep === 1, 'border-green-500': currentStep > 1}">
                     <div class="card-header">
-                        <div class="card-header-icon">
+                        <div class="card-header-icon" :class="{'bg-green-500': currentStep > 1}">
                             <i class="fas fa-image"></i>
                         </div>
                         <h2 class="card-title">Header Image</h2>
@@ -1046,9 +1152,9 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 </div>
 
                 <!-- Content Section -->
-                <div class="card slide-up" style="animation-delay: 0.1s">
+                <div class="card slide-up" style="animation-delay: 0.1s" :class="{'border-indigo-500': currentStep === 1, 'border-green-500': currentStep > 1}">
                     <div class="card-header">
-                        <div class="card-header-icon">
+                        <div class="card-header-icon" :class="{'bg-green-500': currentStep > 1}">
                             <i class="fas fa-pen-fancy"></i>
                         </div>
                         <h2 class="card-title">Email Content</h2>
@@ -1063,9 +1169,9 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 </div>
 
                 <!-- Layout Section - Redesigned for better professional look -->
-                <div class="card slide-up" style="animation-delay: 0.2s">
+                <div class="card slide-up" style="animation-delay: 0.2s" :class="{'border-indigo-500': currentStep === 2, 'border-green-500': currentStep > 2}">
                     <div class="card-header">
-                        <div class="card-header-icon">
+                        <div class="card-header-icon" :class="{'bg-green-500': currentStep > 2}">
                             <i class="fas fa-th-large"></i>
                         </div>
                         <h2 class="card-title">Image Layout</h2>
@@ -1118,7 +1224,7 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                                     </div>
                                     <div class="layout-grid layout-grid-1">
                                         <div class="grid-item flex items-center justify-center">
-                                            <i class="fas fa-user text-blue-400 text-xl"></i>
+                                            <i class="fas text-blue-400 text-xl"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -1238,9 +1344,9 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 </div>
 
                 <!-- Signature Section -->
-                <div class="card slide-up" style="animation-delay: 0.3s">
+                <div class="card slide-up" style="animation-delay: 0.3s" :class="{'border-indigo-500': currentStep === 3, 'border-green-500': currentStep > 3}">
                     <div class="card-header">
-                        <div class="card-header-icon">
+                        <div class="card-header-icon" :class="{'bg-green-500': currentStep > 3}">
                             <i class="fas fa-signature"></i>
                         </div>
                         <h2 class="card-title">Email Signature</h2>
@@ -1275,12 +1381,12 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 </div>
 
                 <div class="flex justify-between space-x-4 mt-6">
-                    <button type="button" @click="debug.showDebug = !debug.showDebug" class="btn btn-secondary">
+                    <!-- <button type="button" @click="debug.showDebug = !debug.showDebug" class="btn btn-secondary">
                         <i class="fas fa-bug mr-2"></i>Toggle Debug
-                    </button>
+                    </button> -->
                     
                     <div>
-                        <button type="reset" class="btn btn-secondary">
+                        <button type="button" @click="resetModal.show = true" class="btn btn-secondary">
                             <i class="fas fa-redo mr-2"></i>Reset
                         </button>
                         <button type="submit" class="btn btn-primary ml-4" :disabled="isLoading">
@@ -1328,25 +1434,25 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
                 <?php if (isset($preview_html) && !empty($preview_html)): ?>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="copyToClipboard()" class="btn btn-success">
+                   <div class="flex flex-wrap gap-2">
+                        <!-- <button onclick="copyToClipboard()" class="btn btn-success">
                             <i class="fas fa-copy mr-2"></i>Copy with Formatting
-                        </button>
+                        </button> -->
                         <button onclick="copyForOutlook()" class="btn btn-primary">
                             <i class="fas fa-envelope mr-2"></i>Copy for Outlook
                         </button>
                         <button onclick="copyForGmail()" class="btn btn-info" style="background: linear-gradient(90deg, #DB4437, #4285F4); color: white;">
                             <i class="fas fa-envelope mr-2"></i>Copy for Gmail
                         </button>
-                        <button onclick="copyAsCleanHtml()" class="btn btn-secondary">
+                        <!-- <button onclick="copyAsCleanHtml()" class="btn btn-secondary">
                             <i class="fas fa-code mr-2"></i>Copy as HTML
-                        </button>
-                        <button onclick="downloadEmailTemplate()" class="btn btn-secondary">
+                        </button> -->
+                        <!-- <button onclick="downloadEmailTemplate()" class="btn btn-secondary">
                             <i class="fas fa-download mr-2"></i>Download
-                        </button>
-                        <button onclick="showManualCopyInstructions()" class="btn btn-secondary" title="What to do if copying doesn't work">
+                        </button> -->
+                        <!-- <button onclick="showManualCopyInstructions()" class="btn btn-secondary" title="What to do if copying doesn't work">
                             <i class="fas fa-question-circle"></i>
-                        </button>
+                        </button> -->
                     </div>
                 <?php endif; ?>
             </div>
@@ -1418,6 +1524,31 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
         <i class="fas fa-times mr-2"></i> Close
     </button>
 </div>
+        </div>
+
+        <!-- Reset Confirmation Modal -->
+        <div class="modal-overlay" :class="{'show': resetModal.show}" @click.self="resetModal.show = false">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <div class="modal-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="modal-title">Reset Form?</h3>
+                </div>
+                <div class="modal-body">
+                    <p class="text-gray-600">
+                        Are you sure you want to reset the form? This will clear all your inputs and any changes you've made will be lost.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" @click="resetModal.show = false">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-confirm" @click="performReset()">
+                        <i class="fas fa-redo mr-2"></i>Reset Form
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Toast Notification -->
@@ -1534,8 +1665,8 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     previewContainer.innerHTML = `
-                        <img src="${e.target.result}" class="rounded-lg shadow-md">
-                        <button type="button" class="btn btn-error mt-2" onclick="removeImage(this)">
+                        <img src="${e.target.result}" class="rounded-lg shadow-md" id="preview-${input.name}">
+                        <button type="button" class="btn btn-error mt-2" onclick="removeImage(this, '${input.name}')">
                             <i class="fas fa-trash-alt mr-2"></i>Remove
                         </button>
                     `;
@@ -1552,25 +1683,38 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             }
         }
 
-        function removeImage(button) {
+        function removeImage(button, inputName) {
             const previewContainer = button.parentElement;
-            const fileUpload = previewContainer.previousElementSibling.querySelector('input[type="file"]');
+            const parentCard = previewContainer.closest('.card');
+            const fileUpload = parentCard.querySelector(`input[name="${inputName}"]`);
             
-            // Reset the file input
-            fileUpload.value = '';
+            // Create a new file input to replace the current one
+            const newFileInput = document.createElement('input');
+            newFileInput.type = 'file';
+            newFileInput.name = inputName;
+            newFileInput.accept = 'image/*';
+            newFileInput.setAttribute('onchange', 'updateFileName(this)');
+            
+            // Replace the old file input with the new one
+            fileUpload.parentNode.replaceChild(newFileInput, fileUpload);
             
             // Remove the preview and hide the filename
             previewContainer.remove();
             
             // Hide the filename display
-            const fileNameDisplay = fileUpload.parentElement.nextElementSibling;
-            fileNameDisplay.style.display = 'none';
+            const fileNameDisplay = parentCard.querySelector('.selected-file');
+            if (fileNameDisplay) {
+                fileNameDisplay.style.display = 'none';
+            }
             
             // Update debug info if available
             const debug = document.querySelector('[x-data]').__x.$data.debug;
             if (debug) {
-                debug.messages.push(`File removed from ${fileUpload.name}`);
+                debug.messages.push(`File removed from ${inputName}`);
             }
+            
+            // Show toast notification
+            showToast('Image removed successfully', 'success');
         }
 
         function showToast(message, type = 'success', duration = 3000) {
@@ -1816,6 +1960,101 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                     }
                 });
             });
+
+            // Add Alpine.js method to handle form reset
+            if (document.querySelector('[x-data]').__x) {
+                document.querySelector('[x-data]').__x.$data.performReset = function() {
+                    try {
+                        // Close the reset modal
+                        this.resetModal.show = false;
+                        
+                        // Add debug message
+                        if (this.debug) {
+                            this.debug.messages.push('Form reset initiated through modal');
+                        }
+                        
+                        // Reset TinyMCE editor content
+                        if (typeof tinymce !== 'undefined' && tinymce.get('rich-text-editor')) {
+                            tinymce.get('rich-text-editor').setContent('');
+                        }
+                        
+                        // Clear file input fields
+                        document.querySelectorAll('input[type="file"]').forEach(fileInput => {
+                            fileInput.value = '';
+                        });
+                        
+                        // Hide any selected file displays
+                        document.querySelectorAll('.selected-file').forEach(element => {
+                            element.style.display = 'none';
+                        });
+                        
+                        // Remove any image previews
+                        document.querySelectorAll('.image-preview').forEach(element => {
+                            element.remove();
+                        });
+                        
+                        // Reset radio buttons for layout to default (No Images)
+                        const defaultLayout = document.getElementById('layout-none');
+                        if (defaultLayout) {
+                            defaultLayout.checked = true;
+                            // Trigger the change event to update the form
+                            const event = new Event('change');
+                            defaultLayout.dispatchEvent(event);
+                        }
+                        
+                        // Reset text inputs
+                        document.querySelectorAll('input[type="text"]').forEach(input => {
+                            input.value = '';
+                        });
+                        
+                        // Reset the signature fields to defaults
+                        const regardsText = document.querySelector('input[name="regards_text"]');
+                        if (regardsText) {
+                            regardsText.value = 'Best Regards,';
+                        }
+                        
+                        // Clear the preview section
+                        const previewContent = document.getElementById('formatted-content');
+                        if (previewContent) {
+                            const previewSection = previewContent.parentElement;
+                            
+                            // Replace the preview content with the empty state
+                            previewSection.innerHTML = `
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
+                            </div>
+                            <div class="preview-empty">
+                                <i class="fas fa-envelope-open-text"></i>
+                                <p>Your email preview will appear here</p>
+                                <p>Generate a template to see how your email will look</p>
+                            </div>`;
+                        }
+                        
+                        // Reset Alpine.js state
+                        this.currentStep = 1;
+                        this.selectedFile = null;
+                        
+                        // Show success toast
+                        this.toastMessage = 'Form has been reset successfully';
+                        this.toastType = 'success';
+                        this.showToast = true;
+                        setTimeout(() => { this.showToast = false; }, 3000);
+                        
+                        // Reload the page after a short delay to ensure a complete reset
+                        setTimeout(function() {
+                            window.location.href = window.location.pathname; // Reload without parameters
+                        }, 1000);
+                    } catch (err) {
+                        console.error('Error during form reset:', err);
+                        
+                        // Show error toast
+                        this.toastMessage = 'An error occurred while resetting the form';
+                        this.toastType = 'error';
+                        this.showToast = true;
+                        setTimeout(() => { this.showToast = false; }, 3000);
+                    }
+                };
+            }
         });
         
         // Functions for copying and downloading the template
@@ -2378,42 +2617,77 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             // Clone the content
             const gmailClone = content.cloneNode(true);
             
-            // Find the header image
-            const headerImg = gmailClone.querySelector('img[width="750"], img[style*="width:750px"]');
-            
-            if (headerImg) {
-                // Create a new wrapper for the header image
-                const headerWrapper = document.createElement('div');
-                headerWrapper.innerHTML = `
-                    <table width="750" border="0" cellpadding="0" cellspacing="0" align="center" style="width:750px; max-width:100%; table-layout:fixed;">
-                        <tr>
-                            <td align="center" style="padding:0;">
-                                <img src="${headerImg.src}" alt="Header" width="950" style="width:750px; max-width:100%; display:block; border:0;" />
-                            </td>
-                        </tr>
-                    </table>
-                `;
+            // Fix table widths consistency for Gmail
+            const fixGmailTableWidths = function(element) {
+                // Set the standard width that we'll use consistently
+                const standardWidth = 750;
                 
-                // Replace the header image with our new wrapper
-                const headerParent = headerImg.parentNode;
-                if (headerParent) {
-                    // If the parent is already a td, replace its content
-                    if (headerParent.tagName === 'TD') {
-                        headerParent.innerHTML = headerWrapper.innerHTML;
-                    } else {
-                        // Otherwise replace the image with our wrapper
-                        headerParent.replaceChild(headerWrapper.firstElementChild, headerImg);
+                // Find all tables that need width standardization
+                const tables = element.querySelectorAll('table');
+                tables.forEach(table => {
+                    table.setAttribute('width', standardWidth);
+                    table.style.width = standardWidth + 'px';
+                    table.style.maxWidth = '100%';
+                    
+                    // Add extra attributes for Gmail compatibility
+                    table.setAttribute('cellspacing', '0');
+                    table.setAttribute('cellpadding', '0');
+                    table.setAttribute('border', '0');
+                    table.setAttribute('align', 'center');
+                });
+                
+                // Ensure all images (especially header) have correct attributes
+                const images = element.querySelectorAll('img');
+                images.forEach(img => {
+                    // For header images, ensure they're exactly the standard width
+                    if (img.parentElement && 
+                        (img.parentElement.tagName === 'TD' || 
+                         img.parentElement.parentElement && img.parentElement.parentElement.tagName === 'TD')) {
+                        
+                        const imgWidth = standardWidth;
+                        img.setAttribute('width', imgWidth);
+                        img.style.width = imgWidth + 'px';
+                        img.style.maxWidth = '100%';
+                        img.style.display = 'block';
+                        img.style.margin = '0 auto';
+                        
+                        // Force the parent cell to match
+                        if (img.parentElement.tagName === 'TD') {
+                            img.parentElement.setAttribute('width', standardWidth);
+                            img.parentElement.style.width = standardWidth + 'px';
+                        }
                     }
+                });
+                
+                // Make sure the footer td also has the same width
+                const footerTd = element.querySelector('tr:last-child td');
+                if (footerTd) {
+                    footerTd.setAttribute('width', standardWidth);
+                    footerTd.style.width = standardWidth + 'px';
+                    footerTd.style.maxWidth = '100%';
                 }
-            }
+                
+                // Ensure all TDs in the main structure have the same width
+                const mainTds = element.querySelectorAll('td');
+                mainTds.forEach(td => {
+                    if (td.parentElement && 
+                        td.parentElement.parentElement && 
+                        td.parentElement.parentElement.tagName === 'TABLE') {
+                        
+                        // If it's a top-level TD, standardize width
+                        if (!td.hasAttribute('width')) {
+                            td.setAttribute('width', standardWidth);
+                            td.style.width = standardWidth + 'px';
+                            td.style.maxWidth = '100%';
+                        }
+                    }
+                });
+                
+                return element;
+            };
             
-            // Also ensure the footer has the correct width
-            const footerTd = gmailClone.querySelector('tr:last-child td');
-            if (footerTd) {
-                footerTd.setAttribute('width', '750');
-                footerTd.style.width = '750px';
-                footerTd.style.maxWidth = '100%';
-            }
+            // Fix the Gmail-specific issues with consistent table widths
+            const gmailReadyContent = fixGmailTableWidths(gmailClone);
             
             // Create a proper wrapper for Gmail
             const wrapper = document.createElement('div');
@@ -2426,13 +2700,30 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                     <style type="text/css">
                         body { margin: 0; padding: 0; }
                         table { border-collapse: collapse; width: 750px !important; max-width: 100% !important; }
-                        img { max-width: 100% !important; }
+                        img { max-width: 100% !important; display: block; }
                         .header-img { width: 750px !important; max-width: 100% !important; }
                         .footer-td { width: 750px !important; max-width: 100% !important; }
+                        
+                        /* Fix Gmail-specific rendering issues */
+                        u + .body .gmail-fix { display: none !important; }
+                        
+                        /* Additional Gmail compatibility */
+                        .ReadMsgBody { width: 100%; }
+                        .ExternalClass { width: 100%; }
+                        .ExternalClass * { line-height: 100%; }
                     </style>
                 </head>
-                <body>
-                    ${gmailClone.outerHTML}
+                <body class="body">
+                    <!-- Gmail rendering fix -->
+                    <div class="gmail-fix" style="white-space:nowrap; font:15px courier; line-height:0;">
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                    </div>
+                    
+                    <!-- Centered container with fixed width -->
+                    <div style="width:100%; max-width:750px; margin:0 auto;">
+                        ${gmailReadyContent.outerHTML}
+                    </div>
                 </body>
                 </html>
             `;
@@ -2441,14 +2732,15 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             copyWithFormattingPreserved(wrapper)
                 .then(result => {
                     if (result.success) {
-                        showToast('Content copied for Gmail with matched widths!', 'success');
+                        showToast('Content copied for Gmail with fixed table widths!', 'success');
                     } else {
-                        showManualCopyInstructions();
+                        // If the advanced method fails, try a fallback method
+                        fallbackGmailCopy(gmailReadyContent);
                     }
                 })
                 .catch(error => {
                     console.error('Gmail copy failed:', error);
-                    showManualCopyInstructions();
+                    fallbackGmailCopy(gmailReadyContent);
                 });
         }
 
@@ -2478,96 +2770,6 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 console.error('Gmail copy fallback failed:', err);
                 showManualCopyInstructions();
             }
-        }
-
-        function prepareElementForGmail(element) {
-            // Fix the overall table structure to ensure consistent width
-            
-            // First, look for the main container table
-            const mainTable = element.querySelector('table[width="750"]');
-            if (mainTable) {
-                // Ensure it has max-width for responsiveness
-                mainTable.setAttribute('style', 'width:750px;max-width:100%;border-collapse:collapse;border-spacing:0;margin:0 auto;padding:0;');
-                
-                // Make sure all direct td children have align="center" for consistent Gmail rendering
-                const directTds = mainTable.querySelectorAll('> tbody > tr > td');
-                directTds.forEach(td => {
-                    if (!td.hasAttribute('align')) {
-                        td.setAttribute('align', 'center');
-                    }
-                });
-            }
-            
-            // For each image, especially header images, ensure proper structure
-            const images = element.querySelectorAll('img');
-            images.forEach(img => {
-                // Add display:block and other Gmail-friendly attributes
-                let style = img.getAttribute('style') || '';
-                if (!style.includes('display:block')) {
-                    style += 'display:block;';
-                }
-                if (!style.includes('max-width:100%')) {
-                    style += 'max-width:100%;';
-                }
-                if (!style.includes('margin:0 auto')) {
-                    style += 'margin:0 auto;';
-                }
-                img.setAttribute('style', style);
-                
-                // Ensure it has width attributes
-                if (!img.hasAttribute('width') && img.style.width) {
-                    const width = parseInt(img.style.width);
-                    if (!isNaN(width)) {
-                        img.setAttribute('width', width);
-                    }
-                }
-            });
-            
-            // Gmail handles tables better with explicit cellpadding, cellspacing and border
-            const tables = element.querySelectorAll('table');
-            tables.forEach(table => {
-                if (!table.hasAttribute('cellpadding')) table.setAttribute('cellpadding', '0');
-                if (!table.hasAttribute('cellspacing')) table.setAttribute('cellspacing', '0');
-                if (!table.hasAttribute('border')) table.setAttribute('border', '0');
-                
-                // Add role="presentation" for Gmail
-                table.setAttribute('role', 'presentation');
-            });
-            
-            // Ensure text content has proper styling for Gmail
-            const textElements = element.querySelectorAll('p, div, span, h1, h2, h3, h4, h5, h6, strong, em, b, i, td, th, li, a');
-            textElements.forEach(el => {
-                let style = el.getAttribute('style') || '';
-                if (!style.includes('font-family')) {
-                    style += 'font-family:"Proxima Nova", Arial, sans-serif !important;';
-                } else {
-                    style = style.replace(/font-family\s*:\s*[^;]+;/i, 'font-family:"Proxima Nova", Arial, sans-serif !important;');
-                }
-                el.setAttribute('style', style);
-            });
-            
-            // Add special Gmail wrapper with proper meta tags
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
-                        img { -ms-interpolation-mode:bicubic; }
-                        table { border-collapse:collapse; mso-table-lspace:0; mso-table-rspace:0; }
-                    </style>
-                </head>
-                <body>
-                    ${element.innerHTML}
-                </body>
-                </html>
-            `;
-            
-            // Replace the element's content with the wrapper
-            element.innerHTML = wrapper.innerHTML;
         }
 
         function copyAsCleanHtml() {
@@ -2722,6 +2924,9 @@ function generateEmailTemplate($options) {
     // Set font family - Use both "Proxima Nova RG" and "Proxima Nova" for better compatibility
     $fontFamily = '"Proxima Nova RG", "Proxima Nova", Arial, sans-serif';
     
+    // The email width - IMPORTANT: Use the same width throughout for Gmail compatibility
+    $emailWidth = 750;
+    
     // Process the body content for better email compatibility
     $body_content = processContentForOutlook($body_content);
     
@@ -2731,7 +2936,7 @@ function generateEmailTemplate($options) {
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Email Template</title>
+
 
 <!--[if mso]>
 <xml>
@@ -2840,23 +3045,23 @@ function generateEmailTemplate($options) {
 </head>
 <body style="margin:0;padding:0;background-color:#ffffff;font-family:' . $fontFamily . ' !important;">
 <!--[if mso]>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="750" style="width:750px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="' . $emailWidth . '" style="width:' . $emailWidth . 'px;">
 <tr>
 <td>
 <![endif]-->
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="750" style="width:750px;max-width:100%;border-collapse:collapse;border-spacing:0;margin:0 auto;padding:0;font-family:' . $fontFamily . ' !important;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="' . $emailWidth . '" style="width:' . $emailWidth . 'px;max-width:100%;border-collapse:collapse;border-spacing:0;margin:0 auto;padding:0;font-family:' . $fontFamily . ' !important;">
     <!-- HEADER SECTION -->
     <tr>
-        <td align="center" style="padding:0;font-family:' . $fontFamily . ' !important;">
+        <td align="center" style="padding:0;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">
             ' . ($header_image ? '
-            <img src="' . $header_image . '" alt="Header" width="750" style="width:750px;max-width:100%;display:block;border:0;margin:0 auto;" />'
+            <img src="' . $header_image . '" alt="Header" width="' . $emailWidth . '" style="width:' . $emailWidth . 'px;max-width:100%;display:block;border:0;margin:0 auto;" />'
             : '') . '
         </td>
     </tr>
     
     <!-- BODY CONTENT SECTION -->
     <tr>
-        <td class="outlook-content-cell" align="center" style="padding:30px 50px;font-family:' . $fontFamily . ' !important;">
+        <td class="outlook-content-cell" align="center" style="padding:30px 50px;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">
             <div style="width:100%;font-family:' . $fontFamily . ' !important;line-height:1.5 !important;mso-line-height-rule:exactly;mso-line-height-alt:24pt;">
                 ' . $body_content . '
             </div>
@@ -2865,9 +3070,9 @@ function generateEmailTemplate($options) {
 
     // Add employee images or group image based on layout type
     if ($layout_type === 'group' && !empty($group_image)) {
-        $template .= generateGroupImage($group_image, $group_caption, $fontFamily);
+        $template .= generateGroupImage($group_image, $group_caption, $fontFamily, $emailWidth);
     } else if (!empty($employee_images)) {
-        $template .= generateImageGrid($employee_images, $layout_type, $employee_details, $fontFamily);
+        $template .= generateImageGrid($employee_images, $layout_type, $employee_details, $fontFamily, $emailWidth);
     }
 
     // Add signature section
@@ -2878,7 +3083,7 @@ function generateEmailTemplate($options) {
     </tr>
     
     <tr>
-        <td align="left" style="padding:10px 50px 10px 50px;font-family:' . $fontFamily . ' !important;">
+        <td align="left" style="padding:10px 50px 10px 50px;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">
             <p style="margin:0 0 12pt 0;padding:0;line-height:1.5 !important;mso-line-height-rule:exactly;mso-line-height-alt:24pt;color:#333333;font-family:' . $fontFamily . ' !important;">
                 <strong style="font-weight:bold;font-family:' . $fontFamily . ' !important;">' . htmlspecialchars($regards_text) . '</strong>
             </p>
@@ -2896,7 +3101,7 @@ function generateEmailTemplate($options) {
     
     <!-- FOOTER SECTION -->
     <tr>
-        <td align="center" style="background-color:#000000;padding:15px;font-family:' . $fontFamily . ' !important;">
+        <td align="center" style="background-color:#000000;padding:15px;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">
             <div style="font-family:' . $fontFamily . ' !important;line-height:1.5 !important;mso-line-height-rule:exactly;mso-line-height-alt:24pt;color:#FFFFFF;text-align:center;">
                 <span style="color:#FFFFFF;font-family:' . $fontFamily . ' !important;">
                     VDart, 11180 State Bridge Road, Suite 302, Alpharetta, Georgia GA 30022,<br>
@@ -2920,7 +3125,7 @@ function generateEmailTemplate($options) {
 /**
  * Generate HTML for a group image section
  */
-function generateGroupImage($group_image, $group_caption, $fontFamily = null) {
+function generateGroupImage($group_image, $group_caption, $fontFamily = null, $emailWidth = 750) {
     if (empty($group_image)) {
         return '';
     }
@@ -2930,10 +3135,12 @@ function generateGroupImage($group_image, $group_caption, $fontFamily = null) {
         $fontFamily = '"Proxima Nova RG", "Proxima Nova", Arial, sans-serif';
     }
     
-    $html = '<tr><td align="center" style="padding:20px 0;font-family:' . $fontFamily . ' !important;">';
-    $html .= '<div style="text-align:center; max-width:650px; margin:0 auto;font-family:' . $fontFamily . ' !important;">';
-    // Make the group photo wider than individual photos
-    $html .= '<img src="' . $group_image . '" width="600" style="width:100%; max-width:600px; display:block; border:0; margin:0 auto; border-radius:5px;" />';
+    $imageWidth = 600; // This keeps it proportional but smaller than the main width
+    
+    $html = '<tr><td align="center" style="padding:20px 0;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">';
+    $html .= '<div style="text-align:center; max-width:' . $imageWidth . 'px; margin:0 auto;font-family:' . $fontFamily . ' !important;">';
+    // Make the group photo wider than individual photos but still less than the email width
+    $html .= '<img src="' . $group_image . '" width="' . $imageWidth . '" style="width:' . $imageWidth . 'px; max-width:100%; display:block; border:0; margin:0 auto; border-radius:5px;" />';
     
     if (!empty($group_caption)) {
         $html .= '<div style="padding-top:15px; font-family:' . $fontFamily . ' !important;">';
@@ -2957,22 +3164,32 @@ function generateGroupImage($group_image, $group_caption, $fontFamily = null) {
 
 /**
  * Generate HTML for an employee image grid
+ * Improved to handle proper alignment based on number of images
  */
-function generateImageGrid($images, $layout_type, $employee_details = [], $fontFamily = null) {
+function generateImageGrid($images, $layout_type, $employee_details = [], $fontFamily = null, $emailWidth = 750) {
+    // Filter out empty images but keep track of their positions
+    $filteredImages = [];
+    $validPositions = [];
+    foreach ($images as $index => $imageData) {
+        if (!empty($imageData)) {
+            $filteredImages[] = $imageData;
+            $validPositions[] = $index;
+        }
+    }
+    
+    // If no valid images, return empty
+    if (empty($filteredImages)) {
+        return '';
+    }
+    
     // Set font family if not provided
     if ($fontFamily === null) {
         $fontFamily = '"Proxima Nova RG", "Proxima Nova", Arial, sans-serif';
     }
     
-    $html = '<tr><td><table cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="width:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family:' . $fontFamily . ' !important;">';
+    $html = '<tr><td align="center" width="' . $emailWidth . '" style="font-family:' . $fontFamily . ' !important;"><table cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="width:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family:' . $fontFamily . ' !important;">';
     
-    $generateEmployeeCell = function($index, $cellWidth = 200) use ($images, $employee_details, $fontFamily) {
-        if (!isset($images[$index])) {
-            return '';
-        }
-        
-        $imageData = $images[$index];
-        
+    $generateEmployeeCell = function($index, $imageData, $details, $cellWidth = 200) use ($fontFamily) {
         $html = '<td align="center" style="padding:10px; width:' . $cellWidth . 'px; font-family:' . $fontFamily . ' !important;">';
         $html .= '<div style="text-align:center; font-family:' . $fontFamily . ' !important;">';
         
@@ -2982,15 +3199,15 @@ function generateImageGrid($images, $layout_type, $employee_details = [], $fontF
             $html .= '<div style="height:15px; line-height:15px; font-size:15px;">&nbsp;</div>';
         }
         
-        if (isset($employee_details[$index]) && !empty($employee_details[$index]['name'])) {
+        if (isset($details[$index]) && !empty($details[$index]['name'])) {
             $html .= '<div style="padding-top:15px; font-family:' . $fontFamily . ' !important;">';
             $html .= '<span style="font-weight:bold; font-size:16px; font-family:' . $fontFamily . ' !important;">' . 
-                     htmlspecialchars($employee_details[$index]['name']) . '</span><br>';
+                     htmlspecialchars($details[$index]['name']) . '</span><br>';
                      
             // Always include a font tag for Outlook compatibility
             $html .= '<!--[if mso]><font face="' . $fontFamily . '"><![endif]-->';
             $html .= '<span style="font-size:14px; font-family:' . $fontFamily . ' !important;">' . 
-                     htmlspecialchars($employee_details[$index]['title']) . '</span>';
+                     htmlspecialchars($details[$index]['title']) . '</span>';
             $html .= '<!--[if mso]></font><![endif]-->';
             
             $html .= '</div>';
@@ -3000,74 +3217,77 @@ function generateImageGrid($images, $layout_type, $employee_details = [], $fontF
         
         return $html;
     };
-
-    switch($layout_type) {
-        case '1': // Single image
-            if (!empty($images)) {
-                $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-                $html .= $generateEmployeeCell(0, 200);
-                $html .= '</tr></table></td></tr>';
-            }
-            break;
-
-        case '2': // Two images (1x2)
+    
+    // Calculate number of valid images
+    $validImageCount = count($filteredImages);
+    
+    // Special handling based on actual number of images
+    if ($validImageCount === 1) {
+        // Single image is always centered
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        $html .= $generateEmployeeCell($validPositions[0], $filteredImages[0], $employee_details, 200);
+        $html .= '</tr></table></td></tr>';
+    } 
+    else if ($validImageCount === 2) {
+        // Two images side by side, centered
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        $html .= $generateEmployeeCell($validPositions[0], $filteredImages[0], $employee_details, 200);
+        $html .= $generateEmployeeCell($validPositions[1], $filteredImages[1], $employee_details, 200);
+        $html .= '</tr></table></td></tr>';
+    }
+    else if ($validImageCount === 3) {
+        // Three images in a row
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        for ($i = 0; $i < 3; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '</tr></table></td></tr>';
+    }
+    else if ($validImageCount === 4) {
+        // 2x2 grid
+        // First row - 2 images
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        for ($i = 0; $i < 2; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '</tr></table></td></tr>';
+        
+        // Second row - 2 images
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        for ($i = 2; $i < 4; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '</tr></table></td></tr>';
+    }
+    else if ($validImageCount === 5) {
+        // First row - 3 images
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        for ($i = 0; $i < 3; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '</tr></table></td></tr>';
+        
+        // Second row - 2 images (centered)
+        $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
+        $html .= '<td width="100" style="font-family:' . $fontFamily . ' !important;">&nbsp;</td>'; // Spacer for centering
+        for ($i = 3; $i < 5; $i++) {
+            $html .= $generateEmployeeCell($validPositions[$i], $filteredImages[$i], $employee_details, 200);
+        }
+        $html .= '<td width="100" style="font-family:' . $fontFamily . ' !important;">&nbsp;</td>'; // Spacer for centering
+        $html .= '</tr></table></td></tr>';
+    }
+    else if ($validImageCount > 5) {
+        // Handle more than 5 images in rows of 3
+        for ($row = 0; $row < ceil($validImageCount / 3); $row++) {
             $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-            for($i = 0; $i < 2; $i++) {
-                $html .= $generateEmployeeCell($i, 200);
-            }
-            $html .= '</tr></table></td></tr>';
-            break;
-
-        case '3': // Three images (1x3)
-            $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-            for($i = 0; $i < 3; $i++) {
-                $html .= $generateEmployeeCell($i, 200);
-            }
-            $html .= '</tr></table></td></tr>';
-            break;
-
-        case '2-2': // Four images (2x2)
-            for($row = 0; $row < 2; $row++) {
-                $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-                for($col = 0; $col < 2; $col++) {
-                    $index = $row * 2 + $col;
-                    $html .= $generateEmployeeCell($index, 200);
+            for ($col = 0; $col < 3; $col++) {
+                $index = $row * 3 + $col;
+                if ($index < $validImageCount) {
+                    $html .= $generateEmployeeCell($validPositions[$index], $filteredImages[$index], $employee_details, 200);
                 }
-                $html .= '</tr></table></td></tr>';
-            }
-            break;
-
-        case '3-2': // Five images (3-2)
-            // First row with 3 images
-            $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-            for($i = 0; $i < 3; $i++) {
-                $html .= $generateEmployeeCell($i, 200);
             }
             $html .= '</tr></table></td></tr>';
-            
-            // Second row with 2 images (centered)
-            $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-            $html .= '<td width="100" style="font-family:' . $fontFamily . ' !important;">&nbsp;</td>'; // Spacer for centering
-            for($i = 3; $i < 5; $i++) {
-                $html .= $generateEmployeeCell($i, 200);
-            }
-            $html .= '<td width="100" style="font-family:' . $fontFamily . ' !important;">&nbsp;</td>'; // Spacer for centering
-            $html .= '</tr></table></td></tr>';
-            break;
-
-        case '3-3': // Nine images (3x3)
-            for($row = 0; $row < 3; $row++) {
-                $html .= '<tr><td align="center"><table cellpadding="0" cellspacing="0" border="0"><tr>';
-                for($col = 0; $col < 3; $col++) {
-                    $index = $row * 3 + $col;
-                    $html .= $generateEmployeeCell($index, 200);
-                }
-                $html .= '</tr></table></td></tr>';
-            }
-            break;
-
-        default: // No images
-            break;
+        }
     }
     
     $html .= '</table></td></tr>';
@@ -3383,3 +3603,5 @@ window.addEventListener('load', function() {
     }
 });
 </script>
+</body>
+</html>

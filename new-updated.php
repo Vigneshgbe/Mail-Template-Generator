@@ -1435,22 +1435,22 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
                 <?php if (isset($preview_html) && !empty($preview_html)): ?>
                    <div class="flex flex-wrap gap-2">
-                        <!-- <button onclick="copyToClipboard()" class="btn btn-success">
+                       <!--   <button onclick="copyToClipboard()" class="btn btn-success">
                             <i class="fas fa-copy mr-2"></i>Copy with Formatting
-                        </button> -->
+                        </button>
                         <button onclick="copyForOutlook()" class="btn btn-primary">
                             <i class="fas fa-envelope mr-2"></i>Copy for Outlook
                         </button>
                         <button onclick="copyForGmail()" class="btn btn-info" style="background: linear-gradient(90deg, #DB4437, #4285F4); color: white;">
                             <i class="fas fa-envelope mr-2"></i>Copy for Gmail
                         </button>
-                        <!-- <button onclick="copyAsCleanHtml()" class="btn btn-secondary">
+                        <button onclick="copyAsCleanHtml()" class="btn btn-secondary">
                             <i class="fas fa-code mr-2"></i>Copy as HTML
-                        </button> -->
-                        <!-- <button onclick="downloadEmailTemplate()" class="btn btn-secondary">
+                        </button>
+                        <button onclick="downloadEmailTemplate()" class="btn btn-secondary">
                             <i class="fas fa-download mr-2"></i>Download
-                        </button> -->
-                        <!-- <button onclick="showManualCopyInstructions()" class="btn btn-secondary" title="What to do if copying doesn't work">
+                        </button>
+                        <button onclick="showManualCopyInstructions()" class="btn btn-secondary" title="What to do if copying doesn't work">
                             <i class="fas fa-question-circle"></i>
                         </button> -->
                     </div>
@@ -2627,7 +2627,7 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                     <table width="750" border="0" cellpadding="0" cellspacing="0" align="center" style="width:750px; max-width:100%; table-layout:fixed;">
                         <tr>
                             <td align="center" style="padding:0;">
-                                <img src="${headerImg.src}" alt="Header" width="750" style="width:750px; max-width:100%; display:block; border:0;" />
+                                <img src="${headerImg.src}" alt="Header" width="950" style="width:750px; max-width:100%; display:block; border:0;" />
                             </td>
                         </tr>
                     </table>
@@ -2970,7 +2970,7 @@ function generateEmailTemplate($options) {
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+<title>Email Template</title>
 
 <!--[if mso]>
 <xml>
