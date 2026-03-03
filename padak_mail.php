@@ -1,4 +1,6 @@
 <?php
+// Include this at the top of your PHP file
+
 // Enable error logging for debugging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -1433,22 +1435,22 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 <h2 class="text-2xl font-semibold text-gray-800">Preview</h2>
                 <?php if (isset($preview_html) && !empty($preview_html)): ?>
                    <div class="flex flex-wrap gap-2">
-                       <!--   <button onclick="copyToClipboard()" class="btn btn-success">
+                        <!-- <button onclick="copyToClipboard()" class="btn btn-success">
                             <i class="fas fa-copy mr-2"></i>Copy with Formatting
-                        </button>
+                        </button> -->
                         <button onclick="copyForOutlook()" class="btn btn-primary">
                             <i class="fas fa-envelope mr-2"></i>Copy for Outlook
                         </button>
                         <button onclick="copyForGmail()" class="btn btn-info" style="background: linear-gradient(90deg, #DB4437, #4285F4); color: white;">
                             <i class="fas fa-envelope mr-2"></i>Copy for Gmail
                         </button>
-                        <button onclick="copyAsCleanHtml()" class="btn btn-secondary">
+                        <!-- <button onclick="copyAsCleanHtml()" class="btn btn-secondary">
                             <i class="fas fa-code mr-2"></i>Copy as HTML
-                        </button>
-                        <button onclick="downloadEmailTemplate()" class="btn btn-secondary">
+                        </button> -->
+                        <!-- <button onclick="downloadEmailTemplate()" class="btn btn-secondary">
                             <i class="fas fa-download mr-2"></i>Download
-                        </button>
-                        <button onclick="showManualCopyInstructions()" class="btn btn-secondary" title="What to do if copying doesn't work">
+                        </button> -->
+                        <!-- <button onclick="showManualCopyInstructions()" class="btn btn-secondary" title="What to do if copying doesn't work">
                             <i class="fas fa-question-circle"></i>
                         </button> -->
                     </div>
@@ -2615,42 +2617,77 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             // Clone the content
             const gmailClone = content.cloneNode(true);
             
-            // Find the header image
-            const headerImg = gmailClone.querySelector('img[width="750"], img[style*="width:750px"]');
-            
-            if (headerImg) {
-                // Create a new wrapper for the header image
-                const headerWrapper = document.createElement('div');
-                headerWrapper.innerHTML = `
-                    <table width="750" border="0" cellpadding="0" cellspacing="0" align="center" style="width:750px; max-width:100%; table-layout:fixed;">
-                        <tr>
-                            <td align="center" style="padding:0;">
-                                <img src="${headerImg.src}" alt="Header" width="950" style="width:750px; max-width:100%; display:block; border:0;" />
-                            </td>
-                        </tr>
-                    </table>
-                `;
+            // Fix table widths consistency for Gmail
+            const fixGmailTableWidths = function(element) {
+                // Set the standard width that we'll use consistently
+                const standardWidth = 750;
                 
-                // Replace the header image with our new wrapper
-                const headerParent = headerImg.parentNode;
-                if (headerParent) {
-                    // If the parent is already a td, replace its content
-                    if (headerParent.tagName === 'TD') {
-                        headerParent.innerHTML = headerWrapper.innerHTML;
-                    } else {
-                        // Otherwise replace the image with our wrapper
-                        headerParent.replaceChild(headerWrapper.firstElementChild, headerImg);
+                // Find all tables that need width standardization
+                const tables = element.querySelectorAll('table');
+                tables.forEach(table => {
+                    table.setAttribute('width', standardWidth);
+                    table.style.width = standardWidth + 'px';
+                    table.style.maxWidth = '100%';
+                    
+                    // Add extra attributes for Gmail compatibility
+                    table.setAttribute('cellspacing', '0');
+                    table.setAttribute('cellpadding', '0');
+                    table.setAttribute('border', '0');
+                    table.setAttribute('align', 'center');
+                });
+                
+                // Ensure all images (especially header) have correct attributes
+                const images = element.querySelectorAll('img');
+                images.forEach(img => {
+                    // For header images, ensure they're exactly the standard width
+                    if (img.parentElement && 
+                        (img.parentElement.tagName === 'TD' || 
+                         img.parentElement.parentElement && img.parentElement.parentElement.tagName === 'TD')) {
+                        
+                        const imgWidth = standardWidth;
+                        img.setAttribute('width', imgWidth);
+                        img.style.width = imgWidth + 'px';
+                        img.style.maxWidth = '100%';
+                        img.style.display = 'block';
+                        img.style.margin = '0 auto';
+                        
+                        // Force the parent cell to match
+                        if (img.parentElement.tagName === 'TD') {
+                            img.parentElement.setAttribute('width', standardWidth);
+                            img.parentElement.style.width = standardWidth + 'px';
+                        }
                     }
+                });
+                
+                // Make sure the footer td also has the same width
+                const footerTd = element.querySelector('tr:last-child td');
+                if (footerTd) {
+                    footerTd.setAttribute('width', standardWidth);
+                    footerTd.style.width = standardWidth + 'px';
+                    footerTd.style.maxWidth = '100%';
                 }
-            }
+                
+                // Ensure all TDs in the main structure have the same width
+                const mainTds = element.querySelectorAll('td');
+                mainTds.forEach(td => {
+                    if (td.parentElement && 
+                        td.parentElement.parentElement && 
+                        td.parentElement.parentElement.tagName === 'TABLE') {
+                        
+                        // If it's a top-level TD, standardize width
+                        if (!td.hasAttribute('width')) {
+                            td.setAttribute('width', standardWidth);
+                            td.style.width = standardWidth + 'px';
+                            td.style.maxWidth = '100%';
+                        }
+                    }
+                });
+                
+                return element;
+            };
             
-            // Also ensure the footer has the correct width
-            const footerTd = gmailClone.querySelector('tr:last-child td');
-            if (footerTd) {
-                footerTd.setAttribute('width', '750');
-                footerTd.style.width = '750px';
-                footerTd.style.maxWidth = '100%';
-            }
+            // Fix the Gmail-specific issues with consistent table widths
+            const gmailReadyContent = fixGmailTableWidths(gmailClone);
             
             // Create a proper wrapper for Gmail
             const wrapper = document.createElement('div');
@@ -2663,13 +2700,30 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                     <style type="text/css">
                         body { margin: 0; padding: 0; }
                         table { border-collapse: collapse; width: 750px !important; max-width: 100% !important; }
-                        img { max-width: 100% !important; }
+                        img { max-width: 100% !important; display: block; }
                         .header-img { width: 750px !important; max-width: 100% !important; }
                         .footer-td { width: 750px !important; max-width: 100% !important; }
+                        
+                        /* Fix Gmail-specific rendering issues */
+                        u + .body .gmail-fix { display: none !important; }
+                        
+                        /* Additional Gmail compatibility */
+                        .ReadMsgBody { width: 100%; }
+                        .ExternalClass { width: 100%; }
+                        .ExternalClass * { line-height: 100%; }
                     </style>
                 </head>
-                <body>
-                    ${gmailClone.outerHTML}
+                <body class="body">
+                    <!-- Gmail rendering fix -->
+                    <div class="gmail-fix" style="white-space:nowrap; font:15px courier; line-height:0;">
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                    </div>
+                    
+                    <!-- Centered container with fixed width -->
+                    <div style="width:100%; max-width:750px; margin:0 auto;">
+                        ${gmailReadyContent.outerHTML}
+                    </div>
                 </body>
                 </html>
             `;
@@ -2678,14 +2732,15 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
             copyWithFormattingPreserved(wrapper)
                 .then(result => {
                     if (result.success) {
-                        showToast('Content copied for Gmail with matched widths!', 'success');
+                        showToast('Content copied for Gmail with fixed table widths!', 'success');
                     } else {
-                        showManualCopyInstructions();
+                        // If the advanced method fails, try a fallback method
+                        fallbackGmailCopy(gmailReadyContent);
                     }
                 })
                 .catch(error => {
                     console.error('Gmail copy failed:', error);
-                    showManualCopyInstructions();
+                    fallbackGmailCopy(gmailReadyContent);
                 });
         }
 
@@ -2715,96 +2770,6 @@ strong, em, b, i, span, div, p, h1, h2, h3, h4, h5, h6, a, li, td, th {
                 console.error('Gmail copy fallback failed:', err);
                 showManualCopyInstructions();
             }
-        }
-
-        function prepareElementForGmail(element) {
-            // Fix the overall table structure to ensure consistent width
-            
-            // First, look for the main container table
-            const mainTable = element.querySelector('table[width="750"]');
-            if (mainTable) {
-                // Ensure it has max-width for responsiveness
-                mainTable.setAttribute('style', 'width:750px;max-width:100%;border-collapse:collapse;border-spacing:0;margin:0 auto;padding:0;');
-                
-                // Make sure all direct td children have align="center" for consistent Gmail rendering
-                const directTds = mainTable.querySelectorAll('> tbody > tr > td');
-                directTds.forEach(td => {
-                    if (!td.hasAttribute('align')) {
-                        td.setAttribute('align', 'center');
-                    }
-                });
-            }
-            
-            // For each image, especially header images, ensure proper structure
-            const images = element.querySelectorAll('img');
-            images.forEach(img => {
-                // Add display:block and other Gmail-friendly attributes
-                let style = img.getAttribute('style') || '';
-                if (!style.includes('display:block')) {
-                    style += 'display:block;';
-                }
-                if (!style.includes('max-width:100%')) {
-                    style += 'max-width:100%;';
-                }
-                if (!style.includes('margin:0 auto')) {
-                    style += 'margin:0 auto;';
-                }
-                img.setAttribute('style', style);
-                
-                // Ensure it has width attributes
-                if (!img.hasAttribute('width') && img.style.width) {
-                    const width = parseInt(img.style.width);
-                    if (!isNaN(width)) {
-                        img.setAttribute('width', width);
-                    }
-                }
-            });
-            
-            // Gmail handles tables better with explicit cellpadding, cellspacing and border
-            const tables = element.querySelectorAll('table');
-            tables.forEach(table => {
-                if (!table.hasAttribute('cellpadding')) table.setAttribute('cellpadding', '0');
-                if (!table.hasAttribute('cellspacing')) table.setAttribute('cellspacing', '0');
-                if (!table.hasAttribute('border')) table.setAttribute('border', '0');
-                
-                // Add role="presentation" for Gmail
-                table.setAttribute('role', 'presentation');
-            });
-            
-            // Ensure text content has proper styling for Gmail
-            const textElements = element.querySelectorAll('p, div, span, h1, h2, h3, h4, h5, h6, strong, em, b, i, td, th, li, a');
-            textElements.forEach(el => {
-                let style = el.getAttribute('style') || '';
-                if (!style.includes('font-family')) {
-                    style += 'font-family:"Proxima Nova", Arial, sans-serif !important;';
-                } else {
-                    style = style.replace(/font-family\s*:\s*[^;]+;/i, 'font-family:"Proxima Nova", Arial, sans-serif !important;');
-                }
-                el.setAttribute('style', style);
-            });
-            
-            // Add special Gmail wrapper with proper meta tags
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body { margin:0; padding:0; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
-                        img { -ms-interpolation-mode:bicubic; }
-                        table { border-collapse:collapse; mso-table-lspace:0; mso-table-rspace:0; }
-                    </style>
-                </head>
-                <body>
-                    ${element.innerHTML}
-                </body>
-                </html>
-            `;
-            
-            // Replace the element's content with the wrapper
-            element.innerHTML = wrapper.innerHTML;
         }
 
         function copyAsCleanHtml() {
@@ -2959,6 +2924,9 @@ function generateEmailTemplate($options) {
     // Set font family - Use both "Proxima Nova RG" and "Proxima Nova" for better compatibility
     $fontFamily = '"Proxima Nova RG", "Proxima Nova", Arial, sans-serif';
     
+    // The email width - IMPORTANT: Use the same width throughout for Gmail compatibility
+    $emailWidth = 750;
+    
     // Process the body content for better email compatibility
     $body_content = processContentForOutlook($body_content);
     
@@ -2968,7 +2936,7 @@ function generateEmailTemplate($options) {
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Email Template</title>
+
 
 <!--[if mso]>
 <xml>
@@ -3077,23 +3045,23 @@ function generateEmailTemplate($options) {
 </head>
 <body style="margin:0;padding:0;background-color:#ffffff;font-family:' . $fontFamily . ' !important;">
 <!--[if mso]>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="750" style="width:750px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="' . $emailWidth . '" style="width:' . $emailWidth . 'px;">
 <tr>
 <td>
 <![endif]-->
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="750" style="width:750px;max-width:100%;border-collapse:collapse;border-spacing:0;margin:0 auto;padding:0;font-family:' . $fontFamily . ' !important;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="' . $emailWidth . '" style="width:' . $emailWidth . 'px;max-width:100%;border-collapse:collapse;border-spacing:0;margin:0 auto;padding:0;font-family:' . $fontFamily . ' !important;">
     <!-- HEADER SECTION -->
     <tr>
-        <td align="center" style="padding:0;font-family:' . $fontFamily . ' !important;">
+        <td align="center" style="padding:0;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">
             ' . ($header_image ? '
-            <img src="' . $header_image . '" alt="Header" width="750" style="width:750px;max-width:100%;display:block;border:0;margin:0 auto;" />'
+            <img src="' . $header_image . '" alt="Header" width="' . $emailWidth . '" style="width:' . $emailWidth . 'px;max-width:100%;display:block;border:0;margin:0 auto;" />'
             : '') . '
         </td>
     </tr>
     
     <!-- BODY CONTENT SECTION -->
     <tr>
-        <td class="outlook-content-cell" align="center" style="padding:30px 50px;font-family:' . $fontFamily . ' !important;">
+        <td class="outlook-content-cell" align="center" style="padding:30px 50px;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">
             <div style="width:100%;font-family:' . $fontFamily . ' !important;line-height:1.5 !important;mso-line-height-rule:exactly;mso-line-height-alt:24pt;">
                 ' . $body_content . '
             </div>
@@ -3102,9 +3070,9 @@ function generateEmailTemplate($options) {
 
     // Add employee images or group image based on layout type
     if ($layout_type === 'group' && !empty($group_image)) {
-        $template .= generateGroupImage($group_image, $group_caption, $fontFamily);
+        $template .= generateGroupImage($group_image, $group_caption, $fontFamily, $emailWidth);
     } else if (!empty($employee_images)) {
-        $template .= generateImageGrid($employee_images, $layout_type, $employee_details, $fontFamily);
+        $template .= generateImageGrid($employee_images, $layout_type, $employee_details, $fontFamily, $emailWidth);
     }
 
     // Add signature section
@@ -3115,7 +3083,7 @@ function generateEmailTemplate($options) {
     </tr>
     
     <tr>
-        <td align="left" style="padding:10px 50px 10px 50px;font-family:' . $fontFamily . ' !important;">
+        <td align="left" style="padding:10px 50px 10px 50px;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">
             <p style="margin:0 0 12pt 0;padding:0;line-height:1.5 !important;mso-line-height-rule:exactly;mso-line-height-alt:24pt;color:#333333;font-family:' . $fontFamily . ' !important;">
                 <strong style="font-weight:bold;font-family:' . $fontFamily . ' !important;">' . htmlspecialchars($regards_text) . '</strong>
             </p>
@@ -3133,10 +3101,10 @@ function generateEmailTemplate($options) {
     
     <!-- FOOTER SECTION -->
     <tr>
-        <td align="center" style="background-color:#000000;padding:15px;font-family:' . $fontFamily . ' !important;">
+        <td align="center" style="background-color:#000000;padding:15px;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">
             <div style="font-family:' . $fontFamily . ' !important;line-height:1.5 !important;mso-line-height-rule:exactly;mso-line-height-alt:24pt;color:#FFFFFF;text-align:center;">
                 <span style="color:#FFFFFF;font-family:' . $fontFamily . ' !important;">
-                    Padak (Pvt) Ltd, Batticaloa, Sri Lanka<br>
+                    Padak (Pvt) Ltd, Batticaloa, Sri Lanka,<br>
                     Contact Number: +94 710815522
                 </span>
             </div>
@@ -3157,7 +3125,7 @@ function generateEmailTemplate($options) {
 /**
  * Generate HTML for a group image section
  */
-function generateGroupImage($group_image, $group_caption, $fontFamily = null) {
+function generateGroupImage($group_image, $group_caption, $fontFamily = null, $emailWidth = 750) {
     if (empty($group_image)) {
         return '';
     }
@@ -3167,10 +3135,12 @@ function generateGroupImage($group_image, $group_caption, $fontFamily = null) {
         $fontFamily = '"Proxima Nova RG", "Proxima Nova", Arial, sans-serif';
     }
     
-    $html = '<tr><td align="center" style="padding:20px 0;font-family:' . $fontFamily . ' !important;">';
-    $html .= '<div style="text-align:center; max-width:650px; margin:0 auto;font-family:' . $fontFamily . ' !important;">';
-    // Make the group photo wider than individual photos
-    $html .= '<img src="' . $group_image . '" width="600" style="width:100%; max-width:600px; display:block; border:0; margin:0 auto; border-radius:5px;" />';
+    $imageWidth = 600; // This keeps it proportional but smaller than the main width
+    
+    $html = '<tr><td align="center" style="padding:20px 0;font-family:' . $fontFamily . ' !important;" width="' . $emailWidth . '">';
+    $html .= '<div style="text-align:center; max-width:' . $imageWidth . 'px; margin:0 auto;font-family:' . $fontFamily . ' !important;">';
+    // Make the group photo wider than individual photos but still less than the email width
+    $html .= '<img src="' . $group_image . '" width="' . $imageWidth . '" style="width:' . $imageWidth . 'px; max-width:100%; display:block; border:0; margin:0 auto; border-radius:5px;" />';
     
     if (!empty($group_caption)) {
         $html .= '<div style="padding-top:15px; font-family:' . $fontFamily . ' !important;">';
@@ -3196,7 +3166,7 @@ function generateGroupImage($group_image, $group_caption, $fontFamily = null) {
  * Generate HTML for an employee image grid
  * Improved to handle proper alignment based on number of images
  */
-function generateImageGrid($images, $layout_type, $employee_details = [], $fontFamily = null) {
+function generateImageGrid($images, $layout_type, $employee_details = [], $fontFamily = null, $emailWidth = 750) {
     // Filter out empty images but keep track of their positions
     $filteredImages = [];
     $validPositions = [];
@@ -3217,7 +3187,7 @@ function generateImageGrid($images, $layout_type, $employee_details = [], $fontF
         $fontFamily = '"Proxima Nova RG", "Proxima Nova", Arial, sans-serif';
     }
     
-    $html = '<tr><td><table cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="width:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family:' . $fontFamily . ' !important;">';
+    $html = '<tr><td align="center" width="' . $emailWidth . '" style="font-family:' . $fontFamily . ' !important;"><table cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="width:100%; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family:' . $fontFamily . ' !important;">';
     
     $generateEmployeeCell = function($index, $imageData, $details, $cellWidth = 200) use ($fontFamily) {
         $html = '<td align="center" style="padding:10px; width:' . $cellWidth . 'px; font-family:' . $fontFamily . ' !important;">';
